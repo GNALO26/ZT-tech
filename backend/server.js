@@ -15,13 +15,17 @@ const app = express();
 app.use(helmet());
 
 // CORS – autorise le frontend (à adapter selon l'URL de production)
+// Déplacez CORS en premier
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'https://zt-tech.netlify.app',
   credentials: true,
 }));
 
-// Parsers
+// Désactivez temporairement Helmet pour isoler le bug réseau
+// app.use(helmet()); 
+
 app.use(express.json());
+
 app.use(cookieParser());
 
 // Middleware de partage pour les réseaux sociaux (avant les routes API)
