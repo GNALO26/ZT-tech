@@ -1,20 +1,46 @@
-const { GoogleGenAI } = require('@google/genai');
+// Variable globale pour stocker l'instance de l'IA une fois chargée
+let ai = null;
 
 console.log('✅ CHAT CONTROLLER LOADED');
-console.log('✅ GEMINI_API_KEY :', process.env.GEMINI_API_KEY ? 'définie' : 'MANQUANTE');
 
-// Initialisation conforme au nouveau SDK standardisé
-const ai = process.env.GEMINI_API_KEY
-  ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
-  : null;
+// Initialisation asynchrone robuste pour le nouveau SDK @google/genai en CommonJS
+(async () => {
+  try {
+    if (process.env.GEMINI_API_KEY) {
+      // Import dynamique pour garantir la compatibilité ESM / CommonJS du SDK
+      const genAIModule = await import('@google/genai');
+      // Le SDK exporte souvent GoogleGenAI à la racine ou via default
+      const GoogleGenAI = genAIModule.GoogleGenAI || genAIModule.default?.GoogleGenAI;
+      
+      if (GoogleGenAI) {
+        ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        console.log('✅ GoogleGenAI initialisé avec succès');
+      } else {
+        console.error('❌ Impossible de trouver la classe GoogleGenAI dans le module');
+      }
+    } else {
+      console.log('⚠️ GEMINI_API_KEY : MANQUANTE dans les variables d\'environnement');
+    }
+  } catch (err) {
+    console.error('❌ Erreur lors de l\'initialisation dynamique du SDK Gemini :', err.message);
+  }
+})();
 
-console.log(ai ? '✅ GoogleGenAI OK' : '❌ GoogleGenAI NON INITIALISÉ');
-
-const fastAnswers = {
-  'bonjour': 'Bonjour ! Comment puis-je vous aider ?',
-  'bonsoir': 'Bonsoir ! Comment puis-je vous aider ?',
-  'rendez-vous': 'Pour prendre un rendez-vous, rendez-vous sur la page /rdv.',
-  'contact': 'Vous pouvez nous appeler au +229 01 56 03 58 88.',
+// Dictionnaire intelligent (recherche par mot-clé inclus au lieu de correspondance exacte)
+const getFastAnswer = (text) => {
+  if (text.includes('bonjour') || text.includes('salut')) {
+    return 'Bonjour ! Comment puis-je vous aider ?';
+  }
+  if (text.includes('bonsoir')) {
+    return 'Bonsoir ! Comment puis-je vous aider ?';
+  }
+  if (text.includes('rendez-vous') || text.includes('rdv') || text.includes('prendre un rdv')) {
+    return 'Pour prendre un rendez-vous, rendez-vous sur la page /rdv.';
+  }
+  if (text.includes('contact') || text.includes('numéro') || text.includes('telephone') || text.includes('appeler')) {
+    return 'Vous pouvez nous appeler au +229 01 56 03 58 88.';
+  }
+  return null;
 };
 
 const SYSTEM_PROMPT = `Tu es l'assistant de ZT Technologies, agence de visa et documents à Cotonou. Réponds en français, 3 phrases max. Si tu ne sais pas, propose de contacter le gérant au +229 01 56 03 58 88.`;
@@ -30,23 +56,24 @@ exports.chat = async (req, res) => {
     }
 
     const lowerMsg = message.toLowerCase().trim();
-    console.log('💬 Message reçu :', lowerMsg);
+    console.log('💬 Message traité :', lowerMsg);
 
-    // 1. Gestion des réponses instantanées du dictionnaire
-    if (fastAnswers[lowerMsg]) {
-      console.log('⚡ Réponse instantanée trouvée');
-      return res.json({ reply: fastAnswers[lowerMsg] });
+    // 1. Réponses instantanées souples
+    const quickResponse = getFastAnswer(lowerMsg);
+    if (quickResponse) {
+      console.log('⚡ Réponse instantanée déclenchée');
+      return res.json({ reply: quickResponse });
     }
 
-    // 2. Vérification de la disponibilité de l'instance d'IA
+    // 2. IA indisponible
     if (!ai) {
-      console.log('⚠️ Instance IA non disponible (Clé manquante)');
-      return res.json({ reply: "Le service IA n'est pas disponible actuellement. Contactez-nous au +229 01 56 03 58 88." });
+      console.log('⚠️ IA non disponible (Vérifier les logs d\'initialisation)');
+      return res.json({ reply: "Le service d'intelligence artificielle est indisponible. Veuillez nous contacter au +229 01 56 03 58 88." });
     }
 
     console.log('🤖 Appel de l\'API Gemini (gemini-2.0-flash)...');
     
-    // Structure officielle du SDK @google/genai pour la configuration
+    // Structure validée pour l'appel de contenu
     const response = await ai.models.generateContent({
       model: 'gemini-2.0-flash',
       contents: message,
@@ -54,28 +81,22 @@ exports.chat = async (req, res) => {
         systemInstruction: SYSTEM_PROMPT,
         temperature: 0.4,
         maxOutputTokens: 200,
-      }
+      },
     });
 
-    // Le nouveau SDK expose directement la propriété text ou un helper natif
-    // Si la structure renvoyée par l'API subit des variations, on sécurise l'accès
-    const reply = response.text || 
-                  response.output_text ||
-                  response.candidates?.[0]?.content?.parts?.[0]?.text || 
-                  'Je n\'ai pas pu formuler de réponse.';
-
-    console.log('✅ Réponse générée avec succès :', reply);
+    // Extraction sécurisée du texte
+    const reply = response.text || 'Je n\'ai pas pu formuler de réponse.';
+    console.log('✅ Réponse générée :', reply);
+    
     return res.json({ reply });
     
   } catch (error) {
-    // Analyse essentielle des logs en cas d'échec de l'appel HTTP Google
-    console.error('❌ ERREUR LORS DE L\'APPEL GEMINI :');
-    console.error('Message d\'erreur :', error.message);
-    console.error('Détails complets de l\'erreur :', JSON.stringify(error, null, 2));
-    console.error('Stack Trace :', error.stack);
+    console.error('❌ ERREUR CRITIQUE DANS LE CONTRÔLEUR CHAT :');
+    console.error('Message :', error.message);
+    console.error('Stack :', error.stack);
     
     return res.status(500).json({ 
-      reply: "Désolé, une erreur est survenue lors du traitement de votre demande." 
+      reply: "Désolé, une erreur technique est survenue sur notre serveur. Veuillez réessayer." 
     });
   }
 };
