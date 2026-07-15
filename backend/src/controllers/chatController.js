@@ -1,12 +1,14 @@
 const { GoogleGenAI } = require('@google/genai');
 
-if (!process.env.GEMINI_API_KEY) {
-  console.error('❌ GEMINI_API_KEY manquante');
-}
+// Logs pour confirmer le chargement
+console.log('✅ GEMINI_API_KEY :', process.env.GEMINI_API_KEY ? 'définie' : 'MANQUANTE');
 
 const ai = process.env.GEMINI_API_KEY
   ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
   : null;
+
+if (ai) console.log('✅ Instance GoogleGenAI créée');
+else console.error('❌ GoogleGenAI non initialisé');
 
 const fastAnswers = {
   'bonjour': 'Bonjour ! Comment puis-je vous aider ?',
@@ -28,12 +30,13 @@ exports.chat = async (req, res) => {
       return res.json({ reply: fastAnswers[lowerMsg] });
     }
 
-    // Si pas d'IA
+    // IA indisponible
     if (!ai) {
       return res.json({ reply: "Le service IA n'est pas disponible. Contactez-nous au +229 01 56 03 58 88." });
     }
 
-    // Appel Gemini
+    console.log('📤 Envoi à Gemini :', message);
+
     const response = await ai.models.generateContent({
       model: 'gemini-2.0-flash',
       contents: [{ role: 'user', parts: [{ text: message }] }],
@@ -45,10 +48,11 @@ exports.chat = async (req, res) => {
     });
 
     const reply = response.text || response.candidates?.[0]?.content?.parts?.[0]?.text || 'Je n\'ai pas compris.';
+    console.log('✅ Réponse Gemini :', reply);
 
     res.json({ reply });
   } catch (error) {
-    console.error('Erreur chat :', error);
+    console.error('❌ Erreur chat :', error);
     res.status(500).json({ reply: "Une erreur est survenue. Veuillez réessayer plus tard." });
   }
 };

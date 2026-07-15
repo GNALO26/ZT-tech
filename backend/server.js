@@ -16,7 +16,7 @@ app.use(helmet());
 
 // CORS – autorise le frontend (à adapter selon l'URL de production)
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: process.env.FRONTEND_URL || 'https://zt-tech.netlify.app',
   credentials: true,
 }));
 
