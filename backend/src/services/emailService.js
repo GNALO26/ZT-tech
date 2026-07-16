@@ -1,11 +1,17 @@
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true, // SSL
   auth: {
     user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD
-  }
+    pass: process.env.GMAIL_APP_PASSWORD,
+  },
+  // Timeout augmenté pour éviter les faux timeouts
+  connectionTimeout: 30000, // 30 secondes
+  greetingTimeout: 30000,
+  socketTimeout: 30000,
 });
 
 exports.sendConfirmationEmail = async (to, subject, text, pdfBuffer) => {
@@ -18,9 +24,9 @@ exports.sendConfirmationEmail = async (to, subject, text, pdfBuffer) => {
       {
         filename: 'confirmation-rdv.pdf',
         content: pdfBuffer,
-        contentType: 'application/pdf'
-      }
-    ]
+        contentType: 'application/pdf',
+      },
+    ],
   };
   return transporter.sendMail(mailOptions);
 };
