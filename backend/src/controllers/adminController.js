@@ -131,6 +131,7 @@ exports.exportAppointmentsPDF = async (req, res) => {
     }
     const appointments = await Appointment.find(filter).sort({ appointment_date: 1 });
 
+    // Format paysage pour 8 colonnes
     const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margin: 30 });
     const buffers = [];
     doc.on('data', (chunk) => buffers.push(chunk));
@@ -155,7 +156,6 @@ exports.exportAppointmentsPDF = async (req, res) => {
     doc.fontSize(20).fillColor('#DC2626').font('Helvetica-Bold')
        .text('ZT Technologies – Rendez-vous', { align: 'center' });
     doc.moveDown(0.5);
-
     if (start || end) {
       let filtre = 'Période : ';
       if (start) filtre += `du ${new Date(start).toLocaleDateString('fr-FR')} `;
@@ -164,34 +164,29 @@ exports.exportAppointmentsPDF = async (req, res) => {
     }
     doc.moveDown(1);
 
-    // Colonnes
-    const tableTop = doc.y;
-    const colWidths = [60, 50, 70, 140, 80, 80, 120, 60]; // largeurs des colonnes
-    const headers = ['Date', 'Heure', 'Type visa', 'Nom complet', 'Destination', 'Ville', 'Contact', 'Notif.'];
+    // Définition des colonnes (largeurs réparties sur ~781 pts utiles)
     const startX = 30;
-    let xCursor = startX;
+    const colWidths = [65, 55, 75, 160, 95, 85, 140, 60]; // total = 735, ok
+    const headers = ['Date', 'Heure', 'Type visa', 'Nom complet', 'Destination', 'Ville', 'Contact', 'Notif.'];
+    const headerHeight = 20;
+    const rowHeight = 28; // hauteur de ligne augmentée
 
-    // Fonction pour tracer une ligne horizontale
-    const drawLine = (y) => {
-      doc.moveTo(startX, y).lineTo(doc.page.width - 30, y).strokeColor('#E5E7EB').stroke();
-    };
+    let xCursor = startX;
 
     // En-tête du tableau
     doc.fontSize(10).font('Helvetica-Bold').fillColor('#FFFFFF');
-    const headerHeight = 18;
-    doc.rect(startX, tableTop, doc.page.width - 60, headerHeight).fill('#1F2937');
+    doc.rect(startX, doc.y, doc.page.width - 60, headerHeight).fill('#1F2937');
     doc.fillColor('#FFFFFF');
     headers.forEach((h, i) => {
-      doc.text(h, xCursor + 2, tableTop + 3, { width: colWidths[i], align: 'left' });
+      doc.text(h, xCursor + 2, doc.y - headerHeight + 3, { width: colWidths[i], align: 'left' });
       xCursor += colWidths[i];
     });
+    doc.moveDown(headerHeight / 14); // ajustement pour laisser l'espace
 
     doc.fillColor('#374151').font('Helvetica').fontSize(9);
-    let y = tableTop + headerHeight;
+    let y = doc.y;
 
-    // Lignes de données
     appointments.forEach((apt, index) => {
-      const rowHeight = 16;
       // Fond alterné
       if (index % 2 === 0) {
         doc.rect(startX, y, doc.page.width - 60, rowHeight).fill('#F9FAFB');
@@ -202,7 +197,6 @@ exports.exportAppointmentsPDF = async (req, res) => {
       const fullName = `${apt.first_name} ${apt.last_name}`;
       const contact = `${apt.email}\n${apt.whatsapp_number}`;
 
-      // Colonnes
       xCursor = startX;
       const rowData = [
         dateStr,
@@ -216,14 +210,14 @@ exports.exportAppointmentsPDF = async (req, res) => {
       ];
 
       rowData.forEach((text, i) => {
-        doc.text(text, xCursor + 2, y + 2, { width: colWidths[i] - 4, align: 'left' });
+        doc.text(text, xCursor + 2, y + 2, { width: colWidths[i] - 4, align: 'left', lineGap: 2 });
         xCursor += colWidths[i];
       });
 
       y += rowHeight;
 
-      // Saut de page si nécessaire
-      if (y > doc.page.height - 60) {
+      // Nouvelle page si nécessaire
+      if (y > doc.page.height - 50) {
         doc.addPage();
         y = 50;
         // Redessiner l'en-tête sur la nouvelle page
@@ -239,8 +233,8 @@ exports.exportAppointmentsPDF = async (req, res) => {
       }
     });
 
-    // Ligne de fin du tableau
-    drawLine(y);
+    // Ligne de fin
+    doc.moveTo(startX, y).lineTo(doc.page.width - 30, y).strokeColor('#E5E7EB').stroke();
 
     // Pied de page
     doc.fontSize(9).fillColor('#9CA3AF').text(
