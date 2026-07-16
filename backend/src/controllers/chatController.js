@@ -1,19 +1,22 @@
-const { GoogleGenAI } = require('@google/genai');
+const OpenAI = require('openai');
 
 // ---------------------------------------------------------------------------
-// Initialisation
+// Initialisation du client DeepSeek (compatible OpenAI)
 // ---------------------------------------------------------------------------
-console.log('✅ CHAT CONTROLLER LOADED');
-console.log('✅ GEMINI_API_KEY :', process.env.GEMINI_API_KEY ? 'définie' : 'MANQUANTE');
+console.log('✅ CHAT CONTROLLER LOADED (DeepSeek)');
+console.log('✅ DEEPSEEK_API_KEY :', process.env.DEEPSEEK_API_KEY ? 'définie' : 'MANQUANTE');
 
-const ai = process.env.GEMINI_API_KEY
-  ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
+const openai = process.env.DEEPSEEK_API_KEY
+  ? new OpenAI({
+      baseURL: 'https://api.deepseek.com/v1',
+      apiKey: process.env.DEEPSEEK_API_KEY,
+    })
   : null;
 
-console.log(ai ? '✅ GoogleGenAI OK' : '❌ GoogleGenAI NON INITIALISÉ');
+console.log(openai ? '✅ DeepSeek client OK' : '❌ DeepSeek client NON INITIALISÉ');
 
 // ---------------------------------------------------------------------------
-// FAQ intégrée au prompt
+// FAQ intégrée au prompt système
 // ---------------------------------------------------------------------------
 const FAQ = `
 FAQ ZT Technologies :
@@ -66,7 +69,7 @@ function findFastAnswer(text) {
 }
 
 // ---------------------------------------------------------------------------
-// Contrôleur
+// Contrôleur principal
 // ---------------------------------------------------------------------------
 exports.chat = async (req, res) => {
   const startTime = Date.now();
@@ -82,49 +85,35 @@ exports.chat = async (req, res) => {
     if (fastAnswer) return res.json({ reply: fastAnswer });
 
     // 2. IA indisponible
-    if (!ai) {
+    if (!openai) {
       return res.json({ reply: "Le service IA n'est pas disponible pour le moment. Contactez-nous au +229 01 56 03 58 88." });
     }
 
-    // 3. Appel Gemini (version simplifiée qui fonctionne)
-    console.log('🤖 Appel Gemini...');
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
-      contents: userMessage,                // ✅ chaîne directe
-      config: {
-        systemInstruction: SYSTEM_PROMPT,   // ✅ chaîne directe
-        temperature: 0.4,
-        maxOutputTokens: 250,
-      },
+    // 3. Appel DeepSeek via l'API Chat Completion
+    console.log('🤖 Appel DeepSeek...');
+    const completion = await openai.chat.completions.create({
+      model: 'deepseek-chat',
+      messages: [
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: userMessage },
+      ],
+      temperature: 0.4,
+      max_tokens: 250,
     });
 
-    // 4. Extraction robuste de la réponse
-    let reply;
-    if (typeof response.text === 'function') {
-      reply = response.text();
-    } else if (typeof response.text === 'string') {
-      reply = response.text;
-    } else if (response.candidates?.[0]?.content?.parts?.[0]?.text) {
-      reply = response.candidates[0].content.parts[0].text;
-    } else {
-      reply = "Je n'ai pas compris. Pouvez-vous reformuler ?";
-    }
-
+    const reply = completion.choices[0]?.message?.content || "Je n'ai pas compris. Pouvez-vous reformuler ?";
     const duration = Date.now() - startTime;
-    console.log(`✅ Réponse (${duration}ms)`);
+    console.log(`✅ Réponse DeepSeek (${duration}ms)`);
     res.json({ reply });
 
   } catch (error) {
     const duration = Date.now() - startTime;
     console.error(`❌ Erreur chat (${duration}ms) :`, error.message);
 
-    let userMessage = "Une erreur est survenue. Veuillez réessayer plus tard.";
-    if (error.message?.includes('quota') || error.status === 429) {
-      userMessage = "Nous sommes très sollicités, merci de patienter quelques instants.";
-    } else if (error.message?.includes('timeout') || error.code === 'ETIMEDOUT') {
-      userMessage = "La réponse prend trop de temps. Veuillez réessayer.";
-    }
+    let userMsg = "Une erreur est survenue. Veuillez réessayer plus tard.";
+    if (error.status === 429) userMsg = "Trop de requêtes. Merci de patienter quelques secondes.";
+    else if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') userMsg = "Le service est temporairement indisponible. Veuillez réessayer.";
 
-    res.status(500).json({ reply: userMessage });
+    res.status(500).json({ reply: userMsg });
   }
 };
