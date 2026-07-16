@@ -10,6 +10,7 @@ const shareMiddleware = require('./src/middleware/shareMiddleware');
 connectDB();
 
 const app = express();
+app.set('trust proxy', 1);
 
 // Sécurité
 app.use(helmet());
