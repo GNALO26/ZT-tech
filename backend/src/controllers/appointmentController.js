@@ -25,7 +25,7 @@ exports.create = async (req, res) => {
       notification_method: data.notificationMethod || 'email',
     });
 
-    // Envoyer la confirmation (email avec PDF)
+    // Envoyer la confirmation au client (email avec PDF)
     try {
       const pdfBuffer = await generateConfirmationPDF(newAppointment);
       await sendConfirmationEmail(
@@ -36,6 +36,26 @@ exports.create = async (req, res) => {
       );
       newAppointment.confirmation_sent = true;
       await newAppointment.save();
+
+      // Notifier l'administrateur
+      try {
+        const adminEmail = process.env.ADMIN_EMAIL || 'ztvoyage@gmail.com';
+        const adminSubject = `Nouveau RDV - ${newAppointment.first_name} ${newAppointment.last_name}`;
+        const adminText = `Un nouveau rendez-vous a été pris.\n\n` +
+          `Date : ${newAppointment.appointment_date.toISOString().split('T')[0]} à ${newAppointment.appointment_time}\n` +
+          `Client : ${newAppointment.first_name} ${newAppointment.last_name}\n` +
+          `Email : ${newAppointment.email}\n` +
+          `Téléphone : ${newAppointment.whatsapp_number}\n` +
+          `Type de visa : ${newAppointment.visa_type}\n` +
+          `Destination : ${newAppointment.destination_country}\n` +
+          `Ville : ${newAppointment.city_of_residence}\n` +
+          `Notification : ${newAppointment.notification_method}`;
+
+        await sendConfirmationEmail(adminEmail, adminSubject, adminText, pdfBuffer);
+      } catch (e) {
+        console.error('Erreur notification admin:', e);
+      }
+
     } catch (err) {
       console.error('Erreur envoi confirmation:', err);
       // On continue même si l'email échoue

@@ -1,13 +1,16 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import MainLayout from './layouts/MainLayout';
-import AdminLayout from './layouts/AdminLayout';  // <-- nouveau
+import AdminLayout from './layouts/AdminLayout';
 import Home from './pages/Home';
 import Appointment from './pages/Appointment';
 import Blog from './pages/Blog';
 import BlogArticle from './pages/BlogArticle';
 import Contact from './pages/Contact';
 import About from './pages/About';
+import Services from './pages/Services';
+import LegalNotice from './pages/LegalNotice';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 import AdminLogin from './pages/admin/Login';
 import Dashboard from './pages/admin/Dashboard';
 import Articles from './pages/admin/Articles';
@@ -31,6 +34,9 @@ export default function App() {
               <Route path="/blog/:slug" element={<BlogArticle />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/about" element={<About />} />
+              <Route path="/services" element={<Services />} />
+              <Route path="/mentions-legales" element={<LegalNotice />} />
+              <Route path="/politique-de-confidentialite" element={<PrivacyPolicy />} />
               <Route path="*" element={<NotFound />} />
             </Route>
 
