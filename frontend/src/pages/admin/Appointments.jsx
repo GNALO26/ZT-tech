@@ -26,7 +26,7 @@ export default function Appointments() {
     fetchAppointments();
     const interval = setInterval(fetchAppointments, 30000);
     return () => clearInterval(interval);
-  }, [startDate, endDate]); // relance si les filtres changent
+  }, [startDate, endDate]);
 
   const exportPDF = () => {
     const params = {};

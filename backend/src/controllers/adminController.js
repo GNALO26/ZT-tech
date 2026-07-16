@@ -4,6 +4,7 @@ const Article = require('../models/Article');
 const Appointment = require('../models/Appointment');
 const PDFDocument = require('pdfkit');
 
+// --------------- AUTH ---------------
 exports.login = async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -29,7 +30,7 @@ exports.me = (req, res) => {
   res.json({ email: req.admin.email });
 };
 
-// --------------- Articles ---------------
+// --------------- ARTICLES ---------------
 exports.getAllArticles = async (req, res) => {
   try {
     const articles = await Article.find().sort({ createdAt: -1 });
@@ -81,7 +82,7 @@ exports.deleteArticle = async (req, res) => {
   }
 };
 
-// --------------- Appointments ---------------
+// --------------- APPOINTMENTS ---------------
 exports.getAppointments = async (req, res) => {
   try {
     const { start, end } = req.query;
@@ -102,13 +103,14 @@ exports.getAppointments = async (req, res) => {
 exports.getTodayAppointments = async (req, res) => {
   try {
     const today = new Date();
-    today.setHours(0,0,0,0);
+    today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
     const appointments = await Appointment.find({
-      appointment_date: { $gte: today, $lt: tomorrow }
+      appointment_date: { $gte: today, $lt: tomorrow },
     }).sort({ appointment_time: 1 });
+
     res.json(appointments);
   } catch (err) {
     console.error(err);

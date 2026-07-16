@@ -13,7 +13,6 @@ router.get('/me', auth, ctrl.me);
 // Articles (avec upload d'image)
 router.get('/articles', auth, ctrl.getAllArticles);
 router.post('/articles', auth, upload.single('featured_image'), (req, res, next) => {
-  // Si un fichier a été uploadé, on prépare le corps pour la validation
   if (req.file) {
     req.body.featuredImageUrl = `/uploads/articles/${req.file.filename}`;
   }
@@ -29,7 +28,7 @@ router.delete('/articles/:id', auth, ctrl.deleteArticle);
 
 // Rendez-vous
 router.get('/appointments', auth, ctrl.getAppointments);
-router.get('/appointments/today', auth, ctrl.getTodayAppointments);
+router.get('/appointments/today', auth, ctrl.getTodayAppointments);   // ← nouvelle route
 router.get('/appointments/export/pdf', auth, ctrl.exportAppointmentsPDF);
 
 module.exports = router;
