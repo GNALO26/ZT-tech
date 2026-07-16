@@ -6,7 +6,6 @@ module.exports = async (req, res, next) => {
   const userAgent = req.get('User-Agent') || '';
   if (!BOTS.test(userAgent)) return next();
 
-  // On extrait le slug de l'URL : on attend une URL de type /blog/:slug
   const parts = req.path.split('/');
   if (parts[1] !== 'blog' || !parts[2]) return next();
 
@@ -22,7 +21,7 @@ module.exports = async (req, res, next) => {
   <meta property="og:title" content="${article.title}">
   <meta property="og:description" content="${article.meta_description || ''}">
   <meta property="og:image" content="${article.featured_image_url}">
-  <meta property="og:url" content="https://zttechnologies.bj/blog/${article.slug}">
+  <meta property="og:url" content="https://zt-tech.netlify.app/blog/${article.slug}">
   <meta name="twitter:card" content="summary_large_image">
 </head>
 <body></body>

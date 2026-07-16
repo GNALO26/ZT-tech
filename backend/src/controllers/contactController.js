@@ -7,7 +7,6 @@ exports.submit = async (req, res) => {
       return res.status(400).json({ message: 'Nom, email et message sont obligatoires.' });
     }
     const contact = await Contact.create({ name, email, subject, message });
-    // Optionnel : envoyer un email de notification avec nodemailer
     res.status(201).json({ success: true, id: contact._id });
   } catch (err) {
     console.error(err);

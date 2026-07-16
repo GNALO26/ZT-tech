@@ -5,31 +5,31 @@ const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const connectDB = require('./src/config/db');
 const shareMiddleware = require('./src/middleware/shareMiddleware');
+const path = require('path');
 
 // Connexion à MongoDB
 connectDB();
 
 const app = express();
-app.set('trust proxy', 1);
+app.set('trust proxy', 1); // Important pour Render (X-Forwarded-For)
 
 // Sécurité
 app.use(helmet());
 
-// CORS – autorise le frontend (à adapter selon l'URL de production)
-// Déplacez CORS en premier
+// CORS
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'https://zt-tech.netlify.app',
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   credentials: true,
 }));
 
-// Désactivez temporairement Helmet pour isoler le bug réseau
-// app.use(helmet()); 
-
+// Parsers
 app.use(express.json());
-
 app.use(cookieParser());
 
-// Middleware de partage pour les réseaux sociaux (avant les routes API)
+// Servir les fichiers uploadés
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Middleware de partage pour les réseaux sociaux
 app.use(shareMiddleware);
 
 // Import des routes

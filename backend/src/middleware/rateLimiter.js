@@ -1,8 +1,8 @@
 const rateLimit = require('express-rate-limit');
 
 const appointmentLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 3, // 3 tentatives par IP
+  windowMs: 15 * 60 * 1000,
+  max: 3,
   message: { message: 'Trop de demandes. Veuillez réessayer dans 15 minutes.' },
 });
 

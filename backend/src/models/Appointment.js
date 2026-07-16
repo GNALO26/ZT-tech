@@ -11,6 +11,8 @@ const appointmentSchema = new mongoose.Schema({
   destination_country: { type: String, required: true },
   appointment_date: { type: Date, required: true },
   appointment_time: { type: String, required: true },
+  notification_method: { type: String, enum: ['email', 'whatsapp'], default: 'email' },
+  confirmation_sent: { type: Boolean, default: false },
 }, { timestamps: true });
 
 appointmentSchema.index({ appointment_date: 1, appointment_time: 1 }, { unique: true });

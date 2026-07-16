@@ -1,4 +1,6 @@
 const Appointment = require('../models/Appointment');
+const { generateConfirmationPDF } = require('../services/pdfGenerator');
+const { sendConfirmationEmail } = require('../services/emailService');
 
 exports.create = async (req, res) => {
   try {
@@ -20,7 +22,24 @@ exports.create = async (req, res) => {
       destination_country: data.destinationCountry,
       appointment_date: new Date(data.appointmentDate),
       appointment_time: data.appointmentTime,
+      notification_method: data.notificationMethod || 'email',
     });
+
+    // Envoyer la confirmation (email avec PDF)
+    try {
+      const pdfBuffer = await generateConfirmationPDF(newAppointment);
+      await sendConfirmationEmail(
+        data.email,
+        'Confirmation de votre rendez-vous ZT Technologies',
+        'Veuillez trouver ci-joint votre confirmation de rendez-vous.',
+        pdfBuffer
+      );
+      newAppointment.confirmation_sent = true;
+      await newAppointment.save();
+    } catch (err) {
+      console.error('Erreur envoi confirmation:', err);
+      // On continue même si l'email échoue
+    }
 
     res.status(201).json({ success: true, appointmentId: newAppointment._id });
   } catch (err) {

@@ -3,6 +3,6 @@ module.exports = (schema) => (req, res, next) => {
   if (!result.success) {
     return res.status(400).json({ errors: result.error.format() });
   }
-  req.body = result.data; // données nettoyées
+  req.body = result.data;
   next();
 };
