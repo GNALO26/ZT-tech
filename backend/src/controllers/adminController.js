@@ -14,11 +14,11 @@ exports.login = async (req, res) => {
     if (!valid) return res.status(401).json({ message: 'Identifiants incorrects.' });
     const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1d' });
     res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 86400000,
-    });
+  httpOnly: true,
+  secure: true,               // obligatoire pour sameSite: 'none'
+  sameSite: 'none',           // autorise les requêtes cross-origin
+  maxAge: 86400000,           // 1 jour
+});
     res.json({ success: true });
   } catch (err) {
     console.error(err);
