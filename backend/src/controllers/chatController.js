@@ -37,7 +37,7 @@ Règles strictes :
 - Réponds toujours en français, de manière professionnelle et concise (maximum 3 phrases).
 - Si la question est hors sujet, réponds poliment : "Je suis là pour vous aider sur les services de ZT Technologies. Comment puis-je vous assister ?"
 - Ne donne jamais d'informations personnelles, de prix exacts ou de conseils juridiques. Invite plutôt à prendre rendez-vous.
-- Si tu ne connais pas la réponse, propose de prendre rendez-vous ou d'appeler le +229 01 56 03 58 88.
+- Si tu ne connais pas la réponse, propose de prendre rendez-vous ou d'appeler le +229 01 52 43 17 17.
 - Sois chaleureux mais efficace.`;
 
 const sessions = new Map();
@@ -61,7 +61,7 @@ const fastResponseRules = [
   { pattern: /\b(merci|thanks|merci beaucoup)\b/i,                answer: 'Avec plaisir ! N\'hésitez pas si vous avez d\'autres questions.' },
   { pattern: /\b(au revoir|bye|à bientôt|a plus)\b/i,             answer: 'À bientôt ! Passez une excellente journée.' },
   { pattern: /\b(rendez-vous|rdv|prendre rendez-vous)\b/i,        answer: 'Pour prendre un rendez-vous, rendez-vous sur https://zt-tech.netlify.app/rdv.' },
-  { pattern: /\b(contact|téléphone|appeler|whatsapp)\b/i,         answer: 'Vous pouvez nous appeler ou nous écrire sur WhatsApp au +229 01 56 03 58 88.' },
+  { pattern: /\b(contact|téléphone|appeler|whatsapp)\b/i,         answer: 'Vous pouvez nous appeler ou nous écrire sur WhatsApp au +229 01 52 43 17 17.' },
   { pattern: /\b(horaires|heures d'ouverture|ouverture)\b/i,      answer: 'Nous sommes ouverts du Lundi au Vendredi de 8h à 18h, et le Samedi de 9h à 13h.' },
   { pattern: /\b(adresse|localisation|où|quartier)\b/i,           answer: 'Nous sommes situés à Cotonou, Quartier Zongo.' },
   { pattern: /\b(passeport|prix passeport)\b/i,                   answer: 'Le passeport coûte 25 000 FCFA. Pour plus de détails, prenez rendez-vous.' },
@@ -93,7 +93,7 @@ exports.chat = async (req, res) => {
     }
 
     if (!openai) {
-      return res.json({ reply: "Le service IA n'est pas disponible pour le moment. Contactez-nous au +229 01 56 03 58 88." });
+      return res.json({ reply: "Le service IA n'est pas disponible pour le moment. Contactez-nous au +229 01 52 43 17 17." });
     }
 
     const history = getHistory(currentSessionId);
@@ -126,7 +126,7 @@ exports.chat = async (req, res) => {
     let userMsg = "Une erreur est survenue. Veuillez réessayer plus tard.";
     if (error.status === 429) userMsg = "Trop de requêtes. Merci de patienter quelques secondes.";
     else if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') userMsg = "Le service est temporairement indisponible. Veuillez réessayer.";
-    else if (error.status === 402) userMsg = "Le service de chat est en maintenance. Veuillez nous contacter au +229 01 56 03 58 88.";
+    else if (error.status === 402) userMsg = "Le service de chat est en maintenance. Veuillez nous contacter au +229 01 52 43 17 17.";
     res.status(500).json({ reply: userMsg });
   }
 };
