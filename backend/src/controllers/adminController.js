@@ -177,7 +177,7 @@ exports.exportAppointmentsPDF = async (req, res) => {
     // Titre
     doc.moveDown(3);
     doc.fontSize(20).fillColor('#DC2626').font('Helvetica-Bold')
-       .text('ZT Technologies – Rendez-vous', { align: 'center' });
+       .text('ZT Voyage – Rendez-vous', { align: 'center' });
     doc.moveDown(0.5);
 
     let filterDesc = '';
@@ -268,7 +268,7 @@ exports.exportAppointmentsPDF = async (req, res) => {
 
     // Pied de page
     doc.fontSize(9).fillColor('#9CA3AF').text(
-      `Document généré le ${new Date().toLocaleDateString('fr-FR')} – ZT Technologies`,
+      `Document généré le ${new Date().toLocaleDateString('fr-FR')} – ZT Voyage`,
       startX, doc.page.height - 40, { align: 'center' }
     );
 
