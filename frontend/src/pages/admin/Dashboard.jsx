@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { CalendarDays, Users, Clock } from 'lucide-react';
 import api from '../../services/api';
@@ -8,12 +8,18 @@ export default function Dashboard() {
   const [todayAppointments, setTodayAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchTodayAppointments = useCallback(() => {
     api.get('/admin/appointments/today')
       .then(res => setTodayAppointments(res.data || []))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    fetchTodayAppointments();
+    const interval = setInterval(fetchTodayAppointments, 30000); // 30 secondes
+    return () => clearInterval(interval);
+  }, [fetchTodayAppointments]);
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>

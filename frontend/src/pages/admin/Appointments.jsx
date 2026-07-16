@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Download, Filter } from 'lucide-react';
+import { Download, Filter, RefreshCw } from 'lucide-react';
 import api from '../../services/api';
 import { Helmet } from 'react-helmet-async';
 
@@ -21,9 +21,12 @@ export default function Appointments() {
       .finally(() => setLoading(false));
   };
 
+  // Actualisation automatique toutes les 30 secondes
   useEffect(() => {
     fetchAppointments();
-  }, [startDate, endDate]);
+    const interval = setInterval(fetchAppointments, 30000);
+    return () => clearInterval(interval);
+  }, [startDate, endDate]); // relance si les filtres changent
 
   const exportPDF = () => {
     const params = {};
@@ -47,9 +50,14 @@ export default function Appointments() {
       <Helmet><title>Rendez-vous | Admin</title></Helmet>
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Rendez-vous</h1>
-        <button onClick={exportPDF} className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex items-center gap-2">
-          <Download className="w-4 h-4" /> Exporter PDF
-        </button>
+        <div className="flex gap-2 mt-4 sm:mt-0">
+          <button onClick={exportPDF} className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex items-center gap-2">
+            <Download className="w-4 h-4" /> Exporter PDF
+          </button>
+          <button onClick={fetchAppointments} className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition flex items-center gap-2">
+            <RefreshCw className="w-4 h-4" /> Actualiser
+          </button>
+        </div>
       </div>
 
       {/* Filtres */}
