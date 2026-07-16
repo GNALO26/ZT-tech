@@ -87,13 +87,26 @@ exports.deleteArticle = async (req, res) => {
 // --------------- APPOINTMENTS ---------------
 exports.getAppointments = async (req, res) => {
   try {
-    const { start, end } = req.query;
+    const { start, end, visa_type, destination } = req.query;
     const filter = {};
+
+    // Filtres de dates
     if (start || end) {
       filter.appointment_date = {};
       if (start) filter.appointment_date.$gte = new Date(start);
       if (end) filter.appointment_date.$lte = new Date(end);
     }
+
+    // Filtre par type de visa
+    if (visa_type && visa_type !== 'all') {
+      filter.visa_type = visa_type;
+    }
+
+    // Filtre par destination (recherche exacte ou partielle)
+    if (destination) {
+      filter.destination_country = { $regex: destination, $options: 'i' };
+    }
+
     const appointments = await Appointment.find(filter).sort({ appointment_date: -1 });
     res.json(appointments);
   } catch (err) {
@@ -122,16 +135,26 @@ exports.getTodayAppointments = async (req, res) => {
 
 exports.exportAppointmentsPDF = async (req, res) => {
   try {
-    const { start, end } = req.query;
+    const { start, end, visa_type, destination } = req.query;
     const filter = {};
+
     if (start || end) {
       filter.appointment_date = {};
       if (start) filter.appointment_date.$gte = new Date(start);
       if (end) filter.appointment_date.$lte = new Date(end);
     }
+
+    if (visa_type && visa_type !== 'all') {
+      filter.visa_type = visa_type;
+    }
+
+    if (destination) {
+      filter.destination_country = { $regex: destination, $options: 'i' };
+    }
+
     const appointments = await Appointment.find(filter).sort({ appointment_date: 1 });
 
-    // Format paysage pour 8 colonnes
+    // Document en paysage A4
     const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margin: 30 });
     const buffers = [];
     doc.on('data', (chunk) => buffers.push(chunk));
@@ -156,36 +179,43 @@ exports.exportAppointmentsPDF = async (req, res) => {
     doc.fontSize(20).fillColor('#DC2626').font('Helvetica-Bold')
        .text('ZT Technologies – Rendez-vous', { align: 'center' });
     doc.moveDown(0.5);
-    if (start || end) {
-      let filtre = 'Période : ';
-      if (start) filtre += `du ${new Date(start).toLocaleDateString('fr-FR')} `;
-      if (end) filtre += `au ${new Date(end).toLocaleDateString('fr-FR')}`;
-      doc.fontSize(10).fillColor('#6B7280').text(filtre, { align: 'center' });
-    }
-    doc.moveDown(1);
 
-    // Définition des colonnes (largeurs réparties sur ~781 pts utiles)
+    let filterDesc = '';
+    if (visa_type && visa_type !== 'all') filterDesc += `Type visa: ${visa_type}  `;
+    if (destination) filterDesc += `Destination: ${destination}`;
+    if (start || end) {
+      filterDesc += '  Période : ';
+      if (start) filterDesc += `du ${new Date(start).toLocaleDateString('fr-FR')} `;
+      if (end) filterDesc += `au ${new Date(end).toLocaleDateString('fr-FR')}`;
+    }
+    if (filterDesc.trim()) {
+      doc.fontSize(10).fillColor('#6B7280').text(filterDesc.trim(), { align: 'center' });
+      doc.moveDown(0.5);
+    }
+
+    // Définition des colonnes (largeurs en points)
     const startX = 30;
-    const colWidths = [65, 55, 75, 160, 95, 85, 140, 60]; // total = 735, ok
+    const colWidths = [60, 50, 70, 150, 90, 80, 140, 60]; // total = 700, largeur utile 781 (OK)
     const headers = ['Date', 'Heure', 'Type visa', 'Nom complet', 'Destination', 'Ville', 'Contact', 'Notif.'];
     const headerHeight = 20;
-    const rowHeight = 28; // hauteur de ligne augmentée
+    const rowHeight = 28;
 
     let xCursor = startX;
+    const tableTop = doc.y + 10; // laisser un peu d'espace après le titre
 
     // En-tête du tableau
     doc.fontSize(10).font('Helvetica-Bold').fillColor('#FFFFFF');
-    doc.rect(startX, doc.y, doc.page.width - 60, headerHeight).fill('#1F2937');
+    doc.rect(startX, tableTop, doc.page.width - 60, headerHeight).fill('#1F2937');
     doc.fillColor('#FFFFFF');
     headers.forEach((h, i) => {
-      doc.text(h, xCursor + 2, doc.y - headerHeight + 3, { width: colWidths[i], align: 'left' });
+      doc.text(h, xCursor + 2, tableTop + 3, { width: colWidths[i], align: 'left' });
       xCursor += colWidths[i];
     });
-    doc.moveDown(headerHeight / 14); // ajustement pour laisser l'espace
 
     doc.fillColor('#374151').font('Helvetica').fontSize(9);
-    let y = doc.y;
+    let y = tableTop + headerHeight;
 
+    // Lignes
     appointments.forEach((apt, index) => {
       // Fond alterné
       if (index % 2 === 0) {
@@ -216,11 +246,11 @@ exports.exportAppointmentsPDF = async (req, res) => {
 
       y += rowHeight;
 
-      // Nouvelle page si nécessaire
+      // Saut de page
       if (y > doc.page.height - 50) {
         doc.addPage();
         y = 50;
-        // Redessiner l'en-tête sur la nouvelle page
+        // Redessiner l'en-tête
         xCursor = startX;
         doc.rect(startX, y, doc.page.width - 60, headerHeight).fill('#1F2937');
         doc.fillColor('#FFFFFF').font('Helvetica-Bold').fontSize(10);

@@ -9,12 +9,16 @@ export default function Appointments() {
   const [loading, setLoading] = useState(true);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [visaType, setVisaType] = useState('all');
+  const [destination, setDestination] = useState('');
 
   const fetchAppointments = () => {
     setLoading(true);
     const params = {};
     if (startDate) params.start = startDate;
     if (endDate) params.end = endDate;
+    if (visaType !== 'all') params.visa_type = visaType;
+    if (destination.trim()) params.destination = destination.trim();
     api.get('/admin/appointments', { params })
       .then(res => setAppointments(res.data || []))
       .catch(console.error)
@@ -26,12 +30,14 @@ export default function Appointments() {
     fetchAppointments();
     const interval = setInterval(fetchAppointments, 30000);
     return () => clearInterval(interval);
-  }, [startDate, endDate]);
+  }, [startDate, endDate, visaType, destination]);
 
   const exportPDF = () => {
     const params = {};
     if (startDate) params.start = startDate;
     if (endDate) params.end = endDate;
+    if (visaType !== 'all') params.visa_type = visaType;
+    if (destination.trim()) params.destination = destination.trim();
     api.get('/admin/appointments/export/pdf', { params, responseType: 'blob' })
       .then(response => {
         const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -63,6 +69,7 @@ export default function Appointments() {
       {/* Filtres */}
       <div className="bg-white rounded-xl shadow p-4 mb-6 flex flex-wrap gap-4 items-center">
         <Filter className="w-5 h-5 text-gray-500" />
+        
         <div>
           <label className="block text-sm text-gray-500">Date début</label>
           <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="border rounded-lg p-2" />
@@ -71,7 +78,34 @@ export default function Appointments() {
           <label className="block text-sm text-gray-500">Date fin</label>
           <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="border rounded-lg p-2" />
         </div>
-        <button onClick={() => { setStartDate(''); setEndDate(''); }} className="text-sm text-primary hover:underline">Réinitialiser</button>
+
+        <div>
+          <label className="block text-sm text-gray-500">Type de visa</label>
+          <select value={visaType} onChange={e => setVisaType(e.target.value)} className="border rounded-lg p-2">
+            <option value="all">Tous</option>
+            <option value="VISITEUR">Visiteur</option>
+            <option value="TRAVAIL">Travail</option>
+            <option value="ETUDE">Étude</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm text-gray-500">Destination</label>
+          <input
+            type="text"
+            placeholder="ex: France"
+            value={destination}
+            onChange={e => setDestination(e.target.value)}
+            className="border rounded-lg p-2"
+          />
+        </div>
+
+        <button
+          onClick={() => { setStartDate(''); setEndDate(''); setVisaType('all'); setDestination(''); }}
+          className="text-sm text-primary hover:underline mt-5"
+        >
+          Réinitialiser
+        </button>
       </div>
 
       {/* Tableau */}
