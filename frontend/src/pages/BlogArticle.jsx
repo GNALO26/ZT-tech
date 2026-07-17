@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import api from '../services/api';
 import ShareButtons from '../components/blog/ShareButtons';
+import Reactions from '../components/blog/Reactions';
 import { motion } from 'framer-motion';
 
 export default function BlogArticle() {
@@ -23,7 +24,7 @@ export default function BlogArticle() {
   const articleUrl = window.location.href;
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-4xl mx-auto px-4 py-10">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-4xl mx-auto px-4 py-10 dark:text-gray-100">
       <Helmet>
         <title>{article.meta_title || article.title}</title>
         <meta name="description" content={article.meta_description} />
@@ -33,13 +34,23 @@ export default function BlogArticle() {
         <meta property="og:url" content={articleUrl} />
       </Helmet>
 
-      <img src={article.featured_image_url || '/images/placeholder.jpg'} alt={article.title} className="w-full h-64 md:h-96 object-cover rounded-xl mb-8" />
-      <h1 className="text-3xl md:text-4xl font-bold mb-4">{article.title}</h1>
+      <img
+        src={article.featured_image_url || '/images/placeholder.jpg'}
+        alt={article.title}
+        className="w-full h-64 md:h-96 object-cover rounded-xl mb-8"
+      />
+      <h1 className="text-3xl md:text-4xl font-bold mb-4 dark:text-white">{article.title}</h1>
       <div className="flex justify-between items-center mb-6">
-        <span className="text-gray-500">{new Date(article.createdAt).toLocaleDateString()}</span>
+        <span className="text-gray-500 dark:text-gray-400">
+          {new Date(article.createdAt).toLocaleDateString()}
+        </span>
         <ShareButtons title={article.title} url={articleUrl} />
       </div>
-      <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: article.content }} />
+      <div
+        className="prose max-w-none dark:prose-invert"
+        dangerouslySetInnerHTML={{ __html: article.content }}
+      />
+      <Reactions articleId={article._id} />
     </motion.div>
   );
 }

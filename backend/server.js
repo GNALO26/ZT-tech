@@ -70,6 +70,7 @@ const articlesRoute = require('./src/routes/articles');
 const adminRoute = require('./src/routes/admin');
 const contactRoute = require('./src/routes/contact');
 const chatRoute = require('./src/routes/chat');
+const reactionsRoute = require('./src/routes/reactions');
 
 // Montage des routes
 app.use('/api/appointments', appointmentsRoute);
@@ -77,6 +78,7 @@ app.use('/api/articles', articlesRoute);
 app.use('/api/admin', adminRoute);
 app.use('/api/contact', contactRoute);
 app.use('/api/chat', chatRoute);
+app.use('/api/articles', reactionsRoute);
 
 // Endpoint de santé
 app.get('/api/health', (req, res) => {

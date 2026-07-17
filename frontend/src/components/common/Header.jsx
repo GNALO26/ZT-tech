@@ -28,9 +28,9 @@ export default function Header() {
   return (
     <header className="bg-white dark:bg-gray-900 shadow-md fixed w-full z-20">
       <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-        <Link to="/" className="flex items-center gap-2 text-primary dark:text-white font-bold text-xl" aria-label="Page d'accueil ZT-Voyage">
-          <Plane className="w-6 h-6" />
-          ZT-Voyage
+        <Link to="/" className="flex items-center gap-2 text-primary font-bold text-lg md:text-xl">
+          <img src="/logo.png" alt="ZT Technologies" className="h-8 w-auto md:h-10" />
+          ZT Voyage
         </Link>
 
         <nav className="hidden md:flex gap-6 text-gray-700 dark:text-gray-300 font-medium" role="navigation" aria-label="Menu principal">
