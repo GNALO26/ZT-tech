@@ -4,8 +4,9 @@ import SearchBar from '../components/common/SearchBar';
 import { Link } from 'react-router-dom';
 import { ArrowRight, FileText, Globe, GraduationCap } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
+import LocalBusinessSchema from '../components/common/StructuredData';
 
-// Toutes les vidéos du dossier public (6 fichiers)
+// Toutes les vidéos du dossier public
 const heroVideos = [
   '/coverr-boy-and-girl-studying-outdoors-6650-1080p.mp4',
   '/coverr-plane-engine-in-the-air-2809-1080p.mp4',
@@ -15,7 +16,6 @@ const heroVideos = [
   '/istockphoto-1413476555-640_adpp_is.mp4',
 ];
 
-// Image affichée sur mobile ou en fallback (choisissez une des photos du dossier)
 const posterImage = '/nick-morrison-FHnnjk1Yj7Y-unsplash.jpg';
 
 export default function Home() {
@@ -27,9 +27,15 @@ export default function Home() {
       transition={{ duration: 0.5 }}
     >
       <Helmet>
-        <title>ZT Technologies - Visas, études, voyages</title>
-        <meta name="description" content="Agence de services administratifs et voyages à Cotonou, Bénin." />
+        <title>ZT-Voyage – Visas, études, voyages au Bénin</title>
+        <meta
+          name="description"
+          content="Agence de services administratifs et voyages à Cotonou, Bénin. Obtenez votre visa, vos documents (CIP, casier judiciaire) et préparez vos études à l'étranger."
+        />
+        <link rel="canonical" href="https://zt-voyage.com" />
       </Helmet>
+
+      <LocalBusinessSchema />
 
       {/* Fond vidéo avec rotation aléatoire */}
       <VideoBackground videoSrcs={heroVideos} posterSrc={posterImage}>
@@ -58,32 +64,50 @@ export default function Home() {
       </VideoBackground>
 
       {/* Section services */}
-      <section className="py-12 md:py-16 bg-light">
+      <section className="py-12 md:py-16 bg-light dark:bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
           {[
-            { icon: FileText, title: 'Documents administratifs', desc: 'CIP, casier judiciaire, acte de naissance...' },
-            { icon: Globe, title: 'Visas & Voyages', desc: 'Tourisme, travail, études à l\'étranger.' },
-            { icon: GraduationCap, title: 'Études', desc: 'Orientation et inscription dans les universités.' },
+            {
+              icon: FileText,
+              title: 'Documents administratifs',
+              desc: 'CIP, casier judiciaire, acte de naissance...',
+            },
+            {
+              icon: Globe,
+              title: 'Visas & Voyages',
+              desc: 'Tourisme, travail, études à l\'étranger.',
+            },
+            {
+              icon: GraduationCap,
+              title: 'Études',
+              desc: 'Orientation et inscription dans les universités.',
+            },
           ].map((service, i) => (
             <motion.div
               key={i}
-              className="bg-white p-6 rounded-xl shadow-md text-center border border-gray-100"
+              className="bg-white dark:bg-gray-700 p-6 rounded-xl shadow-md text-center border border-gray-100 dark:border-gray-600"
               initial={{ y: 50, opacity: 0 }}
               whileInView={{ y: 0, opacity: 1 }}
               transition={{ delay: i * 0.2 }}
             >
               <service.icon className="w-10 h-10 sm:w-12 sm:h-12 text-primary mx-auto mb-4" />
-              <h3 className="text-lg sm:text-xl font-semibold mb-2 text-accent">{service.title}</h3>
-              <p className="text-gray-600 text-sm sm:text-base">{service.desc}</p>
+              <h3 className="text-lg sm:text-xl font-semibold mb-2 text-accent dark:text-white">
+                {service.title}
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base">
+                {service.desc}
+              </p>
             </motion.div>
           ))}
         </div>
       </section>
 
       {/* Section recherche */}
-      <section className="py-12 md:py-16 bg-white">
+      <section className="py-12 md:py-16 bg-white dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-8 text-accent">Trouvez un article</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold mb-8 text-accent dark:text-white">
+            Trouvez un article
+          </h2>
           <SearchBar />
         </div>
       </section>
