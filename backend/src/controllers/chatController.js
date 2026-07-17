@@ -59,11 +59,19 @@ function addToHistory(sessionId, role, content) {
   }
 }
 
+// Transforme les URLs en liens HTML cliquables
+function linkify(text) {
+  if (!text) return text;
+  const urlRegex = /(\bhttps?:\/\/[^\s<]+)/g;
+  return text.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">$1</a>');
+}
+
+// Réponses instantanées (avec liens cliquables si besoin)
 const fastResponseRules = [
   { pattern: /^(bonjour|salut|hello|coucou|bjr|bsr|bonsoir)\b/i,  answer: 'Bonjour ! Comment puis-je vous aider ?' },
   { pattern: /\b(merci|thanks|merci beaucoup)\b/i,                answer: 'Avec plaisir ! N\'hésitez pas si vous avez d\'autres questions.' },
   { pattern: /\b(au revoir|bye|à bientôt|a plus)\b/i,             answer: 'À bientôt ! Passez une excellente journée.' },
-  { pattern: /\b(rendez-vous|rdv|prendre rendez-vous)\b/i,        answer: 'Pour prendre un rendez-vous, rendez-vous sur https://zt-tech.netlify.app/rdv.' },
+  { pattern: /\b(rendez-vous|rdv|prendre rendez-vous)\b/i,        answer: linkify('Pour prendre un rendez-vous, rendez-vous sur https://zt-tech.netlify.app/rdv.') },
   { pattern: /\b(contact|téléphone|appeler|whatsapp)\b/i,         answer: `Vous pouvez nous appeler ou nous écrire sur WhatsApp au ${WHATSAPP_NUMBER}.` },
   { pattern: /\b(horaires|heures d'ouverture|ouverture)\b/i,      answer: 'Nous sommes ouverts du Lundi au Vendredi de 8h à 18h, et le Samedi de 9h à 13h.' },
   { pattern: /\b(adresse|localisation|où|quartier)\b/i,           answer: 'Nous sommes situés à Cotonou, Quartier Zongo.' },
@@ -88,11 +96,12 @@ exports.chat = async (req, res) => {
     const lowerMsg = userMessage.toLowerCase();
     const currentSessionId = sessionId || 'default';
 
+    // Réponse instantanée
     const fastAnswer = findFastAnswer(lowerMsg);
     if (fastAnswer) {
       addToHistory(currentSessionId, 'user', userMessage);
       addToHistory(currentSessionId, 'assistant', fastAnswer);
-      return res.json({ reply: fastAnswer });
+      return res.json({ reply: fastAnswer }); // déjà linkifiée si nécessaire
     }
 
     if (!openai) {
@@ -114,7 +123,8 @@ exports.chat = async (req, res) => {
       max_tokens: 200,          // réponse plus courte
     });
 
-    const reply = completion.choices[0]?.message?.content || "Je n'ai pas compris. Pouvez-vous reformuler ?";
+    const rawReply = completion.choices[0]?.message?.content || "Je n'ai pas compris. Pouvez-vous reformuler ?";
+    const reply = linkify(rawReply); // transforme les URLs en liens cliquables
 
     addToHistory(currentSessionId, 'user', userMessage);
     addToHistory(currentSessionId, 'assistant', reply);

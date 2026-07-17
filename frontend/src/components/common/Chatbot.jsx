@@ -107,15 +107,16 @@ export default function Chatbot() {
                   transition={{ delay: 0.1 }}
                   className={`flex ${msg.from === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div
-                    className={`max-w-[80%] p-3 rounded-2xl text-sm ${
-                      msg.from === 'user'
-                        ? 'bg-primary text-white rounded-br-none'
-                        : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-bl-none shadow-sm border dark:border-gray-600'
-                    }`}
-                  >
-                    {msg.text}
-                  </div>
+                  {msg.from === 'bot' ? (
+                    <div
+                      className="max-w-[80%] p-3 rounded-2xl text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-bl-none shadow-sm border dark:border-gray-600 [&_a]:text-blue-400 [&_a]:underline"
+                      dangerouslySetInnerHTML={{ __html: msg.text }}
+                    />
+                  ) : (
+                    <div className="max-w-[80%] p-3 rounded-2xl text-sm bg-primary text-white rounded-br-none">
+                      {msg.text}
+                    </div>
+                  )}
                 </motion.div>
               ))}
               {isLoading && (
