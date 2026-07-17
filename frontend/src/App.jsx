@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
+import ScrollToTop from './components/common/ScrollToTop';
 import MainLayout from './layouts/MainLayout';
 import AdminLayout from './layouts/AdminLayout';
 import Home from './pages/Home';
@@ -25,6 +26,7 @@ export default function App() {
     <HelmetProvider>
       <AuthProvider>
         <BrowserRouter>
+          <ScrollToTop />
           <Routes>
             {/* Public */}
             <Route element={<MainLayout />}>

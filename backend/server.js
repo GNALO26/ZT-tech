@@ -18,9 +18,17 @@ app.use(helmet());
 
 // CORS
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: process.env.FRONTEND_URL || 'https://zt-tech.netlify.app',
   credentials: true,
 }));
+
+// Mode maintenance (à activer via variable d'environnement MAINTENANCE_MODE=true)
+app.use((req, res, next) => {
+  if (process.env.MAINTENANCE_MODE === 'true' && !req.path.startsWith('/api/admin')) {
+    return res.status(503).json({ message: 'Site en maintenance. Veuillez revenir plus tard.' });
+  }
+  next();
+});
 
 // Parsers
 app.use(express.json());

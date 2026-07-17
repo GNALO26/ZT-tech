@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FileText, Calendar, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, FileText, Calendar, LogOut, Menu, X, ChevronRight } from 'lucide-react';
 import { useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 
@@ -21,22 +21,32 @@ export default function AdminLayout() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-gray-50">
-      {/* Bouton menu mobile */}
-      <div className="lg:hidden bg-white p-4 flex justify-between items-center shadow">
-        <h1 className="font-bold text-primary">ZT Admin</h1>
-        <button onClick={() => setSidebarOpen(!sidebarOpen)}>
-          {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
-      </div>
+    <div className="min-h-screen flex bg-gray-50">
+      {/* Overlay mobile */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 z-20 bg-black/50 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
       {/* Sidebar */}
-      <aside className={`bg-white w-full lg:w-64 shadow-lg lg:min-h-screen ${sidebarOpen ? 'block' : 'hidden'} lg:block`}>
-        <div className="p-6 border-b hidden lg:block">
-          <h2 className="text-2xl font-bold text-primary">ZT Admin</h2>
-          <p className="text-sm text-gray-500">{user?.email}</p>
+      <aside className={`fixed top-0 left-0 z-30 h-full w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-auto ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
+        <div className="p-6 border-b flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-primary">ZT Admin</h2>
+            <p className="text-sm text-gray-500 mt-1">{user?.email}</p>
+          </div>
+          <button 
+            onClick={() => setSidebarOpen(false)} 
+            className="lg:hidden text-gray-500 hover:text-gray-700"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
-        <nav className="p-4 space-y-2">
+        <nav className="p-4 space-y-1">
           {links.map(link => {
             const Icon = link.icon;
             const active = location.pathname === link.to;
@@ -45,27 +55,44 @@ export default function AdminLayout() {
                 key={link.to}
                 to={link.to}
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-4 py-2 rounded-lg transition ${active ? 'bg-primary text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+                className={`flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${
+                  active 
+                    ? 'bg-primary text-white' 
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
               >
-                <Icon className="w-5 h-5" />
-                {link.label}
+                <div className="flex items-center gap-3">
+                  <Icon className="w-5 h-5" />
+                  <span className="font-medium">{link.label}</span>
+                </div>
+                {active && <ChevronRight className="w-4 h-4" />}
               </Link>
             );
           })}
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-700 hover:bg-red-50 hover:text-red-600 w-full"
+            className="flex items-center gap-3 w-full px-4 py-3 rounded-lg text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors mt-4"
           >
             <LogOut className="w-5 h-5" />
-            Déconnexion
+            <span className="font-medium">Déconnexion</span>
           </button>
         </nav>
       </aside>
 
       {/* Contenu principal */}
-      <main className="flex-1 p-6 lg:p-8 overflow-auto">
-        <Outlet />
-      </main>
+      <div className="flex-1 flex flex-col min-h-screen">
+        {/* Barre supérieure mobile */}
+        <div className="lg:hidden bg-white shadow-sm p-4 flex items-center justify-between">
+          <button onClick={() => setSidebarOpen(true)} className="text-gray-700">
+            <Menu className="w-6 h-6" />
+          </button>
+          <h1 className="font-bold text-primary">ZT Admin</h1>
+          <div className="w-6" /> {/* espaceur */}
+        </div>
+        <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }

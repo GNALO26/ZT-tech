@@ -7,17 +7,20 @@ const openai = process.env.DEEPSEEK_API_KEY
   ? new OpenAI({
       baseURL: 'https://api.deepseek.com/v1',
       apiKey: process.env.DEEPSEEK_API_KEY,
+      timeout: 8000, // timeout de 8 secondes
     })
   : null;
 
 console.log(openai ? '✅ DeepSeek client OK' : '❌ DeepSeek client NON INITIALISÉ');
+
+const WHATSAPP_NUMBER = process.env.WHATSAPP_NUMBER || '+229 52 43 17 17';
 
 const FAQ = `
 FAQ ZT Technologies :
 - Horaires : Lundi-Vendredi 8h-18h, Samedi 9h-13h.
 - Délai visa France : 10 jours ouvrés.
 - Prix passeport : Veuillez prendre un rendez-vous ou contactez directement le service.
-- Contact : +229 01 52 43 17 17.
+- Contact : ${WHATSAPP_NUMBER}
 - Adresse : Cotonou, Quartier Zongo.
 - Site web : https://zt-tech.netlify.app
 - Rendez-vous : https://zt-tech.netlify.app/rdv
@@ -37,11 +40,11 @@ Règles strictes :
 - Réponds toujours en français, de manière professionnelle et concise (maximum 3 phrases).
 - Si la question est hors sujet, réponds poliment : "Je suis là pour vous aider sur les services de ZT Technologies. Comment puis-je vous assister ?"
 - Ne donne jamais d'informations personnelles, de prix exacts ou de conseils juridiques. Invite plutôt à prendre rendez-vous.
-- Si tu ne connais pas la réponse, propose de prendre rendez-vous ou d'appeler le +229 01 52 43 17 17.
+- Si tu ne connais pas la réponse, propose de prendre rendez-vous ou d'appeler le ${WHATSAPP_NUMBER}.
 - Sois chaleureux mais efficace.`;
 
 const sessions = new Map();
-const MAX_HISTORY = 5;
+const MAX_HISTORY = 3; // réduit pour plus de rapidité
 
 function getHistory(sessionId) {
   if (!sessions.has(sessionId)) sessions.set(sessionId, []);
@@ -61,7 +64,7 @@ const fastResponseRules = [
   { pattern: /\b(merci|thanks|merci beaucoup)\b/i,                answer: 'Avec plaisir ! N\'hésitez pas si vous avez d\'autres questions.' },
   { pattern: /\b(au revoir|bye|à bientôt|a plus)\b/i,             answer: 'À bientôt ! Passez une excellente journée.' },
   { pattern: /\b(rendez-vous|rdv|prendre rendez-vous)\b/i,        answer: 'Pour prendre un rendez-vous, rendez-vous sur https://zt-tech.netlify.app/rdv.' },
-  { pattern: /\b(contact|téléphone|appeler|whatsapp)\b/i,         answer: 'Vous pouvez nous appeler ou nous écrire sur WhatsApp au +229 01 52 43 17 17.' },
+  { pattern: /\b(contact|téléphone|appeler|whatsapp)\b/i,         answer: `Vous pouvez nous appeler ou nous écrire sur WhatsApp au ${WHATSAPP_NUMBER}.` },
   { pattern: /\b(horaires|heures d'ouverture|ouverture)\b/i,      answer: 'Nous sommes ouverts du Lundi au Vendredi de 8h à 18h, et le Samedi de 9h à 13h.' },
   { pattern: /\b(adresse|localisation|où|quartier)\b/i,           answer: 'Nous sommes situés à Cotonou, Quartier Zongo.' },
   { pattern: /\b(passeport|prix passeport)\b/i,                   answer: 'Le passeport coûte 25 000 FCFA. Pour plus de détails, prenez rendez-vous.' },
@@ -93,7 +96,7 @@ exports.chat = async (req, res) => {
     }
 
     if (!openai) {
-      return res.json({ reply: "Le service IA n'est pas disponible pour le moment. Contactez-nous au +229 01 52 43 17 17." });
+      return res.json({ reply: `Le service IA n'est pas disponible pour le moment. Contactez-nous au ${WHATSAPP_NUMBER}.` });
     }
 
     const history = getHistory(currentSessionId);
@@ -107,8 +110,8 @@ exports.chat = async (req, res) => {
     const completion = await openai.chat.completions.create({
       model: 'deepseek-chat',
       messages,
-      temperature: 0.4,
-      max_tokens: 250,
+      temperature: 0.3,         // plus bas = plus rapide et cohérent
+      max_tokens: 200,          // réponse plus courte
     });
 
     const reply = completion.choices[0]?.message?.content || "Je n'ai pas compris. Pouvez-vous reformuler ?";
