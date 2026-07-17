@@ -22,6 +22,10 @@ app.use(cors({
   credentials: true,
 }));
 
+// Parsers
+app.use(express.json());
+app.use(cookieParser());
+
 // Mode maintenance (à activer via variable d'environnement MAINTENANCE_MODE=true)
 app.use((req, res, next) => {
   if (process.env.MAINTENANCE_MODE === 'true' && !req.path.startsWith('/api/admin')) {
@@ -29,10 +33,6 @@ app.use((req, res, next) => {
   }
   next();
 });
-
-// Parsers
-app.use(express.json());
-app.use(cookieParser());
 
 // Servir les fichiers uploadés
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
