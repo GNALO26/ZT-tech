@@ -133,6 +133,38 @@ exports.getTodayAppointments = async (req, res) => {
   }
 };
 
+// --------------- STATISTIQUES ---------------
+exports.getStats = async (req, res) => {
+  try {
+    // Rendez-vous par mois (6 derniers mois)
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+    const monthly = await Appointment.aggregate([
+      { $match: { appointment_date: { $gte: sixMonthsAgo } } },
+      { $group: { _id: { $dateToString: { format: '%Y-%m', date: '$appointment_date' } }, count: { $sum: 1 } } },
+      { $sort: { _id: 1 } }
+    ]);
+
+    // Par type de visa
+    const byVisaType = await Appointment.aggregate([
+      { $group: { _id: '$visa_type', count: { $sum: 1 } } }
+    ]);
+
+    // Destinations les plus demandées
+    const byDestination = await Appointment.aggregate([
+      { $group: { _id: '$destination_country', count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 10 }
+    ]);
+
+    res.json({ monthly, byVisaType, byDestination });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erreur serveur.' });
+  }
+};
+
+// --------------- EXPORT PDF (tableau amélioré) ---------------
 exports.exportAppointmentsPDF = async (req, res) => {
   try {
     const { start, end, visa_type, destination } = req.query;

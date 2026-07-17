@@ -3,15 +3,31 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
+const morgan = require('morgan');
+const path = require('path');
+const Sentry = require('@sentry/node');
 const connectDB = require('./src/config/db');
 const shareMiddleware = require('./src/middleware/shareMiddleware');
-const path = require('path');
+const logger = require('./src/config/logger');
 
-// Connexion à MongoDB
+// Connexion MongoDB
 connectDB();
 
+// Initialisation Sentry (avant les routes)
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    tracesSampleRate: 1.0,
+    profilesSampleRate: 1.0,
+  });
+}
+
 const app = express();
-app.set('trust proxy', 1); // Important pour Render (X-Forwarded-For)
+
+app.set('trust proxy', 1);
+
+// Morgan pour les logs HTTP (dans le format 'combined')
+app.use(morgan('combined', { stream: { write: (message) => logger.info(message.trim()) } }));
 
 // Sécurité
 app.use(helmet());
@@ -22,11 +38,11 @@ app.use(cors({
   credentials: true,
 }));
 
-// Parsers
-app.use(express.json());
+// Parsers avec limite de taille
+app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
 
-// Mode maintenance (à activer via variable d'environnement MAINTENANCE_MODE=true)
+// Middleware de maintenance
 app.use((req, res, next) => {
   if (process.env.MAINTENANCE_MODE === 'true' && !req.path.startsWith('/api/admin')) {
     return res.status(503).json({ message: 'Site en maintenance. Veuillez revenir plus tard.' });
@@ -34,10 +50,18 @@ app.use((req, res, next) => {
   next();
 });
 
+// En-têtes de sécurité supplémentaires
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  next();
+});
+
 // Servir les fichiers uploadés
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Middleware de partage pour les réseaux sociaux
+// Middleware de partage réseaux sociaux
 app.use(shareMiddleware);
 
 // Import des routes
@@ -62,13 +86,18 @@ app.get('/api/health', (req, res) => {
 // Sitemap
 app.get('/sitemap.xml', require('./src/controllers/sitemapController'));
 
-// Gestion des erreurs 404
+// Sentry error handler
+if (process.env.SENTRY_DSN) {
+  app.use(Sentry.Handlers.errorHandler());
+}
+
+// 404
 app.use((req, res) => {
   res.status(404).json({ message: 'Route non trouvée' });
 });
 
-// Démarrage du serveur
+// Démarrage
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
-  console.log(`✅ Serveur démarré sur http://localhost:${PORT}`);
+  logger.info(`✅ Serveur démarré sur le port ${PORT}`);
 });

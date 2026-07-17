@@ -30,5 +30,6 @@ router.delete('/articles/:id', auth, ctrl.deleteArticle);
 router.get('/appointments', auth, ctrl.getAppointments);
 router.get('/appointments/today', auth, ctrl.getTodayAppointments);   // ← nouvelle route
 router.get('/appointments/export/pdf', auth, ctrl.exportAppointmentsPDF);
+router.get('/stats', auth, ctrl.getStats);
 
 module.exports = router;
