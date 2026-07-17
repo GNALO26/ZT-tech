@@ -21,7 +21,7 @@ module.exports = async (req, res, next) => {
   <meta property="og:title" content="${article.title}">
   <meta property="og:description" content="${article.meta_description || ''}">
   <meta property="og:image" content="${article.featured_image_url}">
-  <meta property="og:url" content="https://zt-tech.netlify.app/blog/${article.slug}">
+  <meta property="og:url" content="https://zt-voyage.com/blog/${article.slug}">
   <meta name="twitter:card" content="summary_large_image">
 </head>
 <body></body>

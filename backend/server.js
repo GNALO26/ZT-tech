@@ -34,7 +34,7 @@ app.use(helmet());
 
 // CORS
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'https://zt-tech.netlify.app',
+  origin: process.env.FRONTEND_URL || 'https://zt-voyage.com',
   credentials: true,
 }));
 
