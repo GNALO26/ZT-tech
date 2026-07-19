@@ -34,6 +34,7 @@ export default function Dashboard() {
   const handleDelete = async (id) => {
     if (!confirm('Supprimer ce rendez-vous ?')) return;
     try {
+      // Nécessite une route DELETE /admin/appointments/:id dans le backend
       await api.delete(`/admin/appointments/${id}`);
       fetchData();
     } catch (err) {
@@ -45,6 +46,24 @@ export default function Dashboard() {
     // Redirection vers un éditeur de rendez-vous (à créer si besoin)
     alert(`Modification du rendez-vous ${id} (fonctionnalité à venir)`);
   };
+
+  // Calcul du prochain rendez-vous (dans la même journée, après l'heure actuelle)
+  const getNextAppointment = () => {
+    if (!todayAppointments.length) return null;
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    // Les rendez-vous sont déjà triés par heure (croissant) grâce au backend
+    const upcoming = todayAppointments.filter(apt => {
+      const [h, m] = apt.appointment_time.split(':').map(Number);
+      const aptMinutes = h * 60 + m;
+      return aptMinutes >= currentMinutes;
+    });
+
+    return upcoming.length > 0 ? upcoming[0] : null;
+  };
+
+  const nextAppointment = getNextAppointment();
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -72,7 +91,7 @@ export default function Dashboard() {
           <div>
             <p className="text-gray-500">Prochain</p>
             <p className="text-2xl font-bold">
-              {todayAppointments.length > 0 ? todayAppointments[0].appointment_time : '--'}
+              {nextAppointment ? nextAppointment.appointment_time : '--'}
             </p>
           </div>
         </div>

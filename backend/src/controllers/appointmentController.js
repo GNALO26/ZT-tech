@@ -5,9 +5,58 @@ const { sendConfirmationEmail } = require('../services/emailService');
 exports.create = async (req, res) => {
   try {
     const data = req.body;
+
+    const appointmentDate = new Date(data.appointmentDate);
+    const appointmentTime = data.appointmentTime;
+    const [hours, minutes] = appointmentTime.split(':').map(Number);
+    const appointmentDateTime = new Date(appointmentDate);
+    appointmentDateTime.setHours(hours, minutes, 0, 0);
+
+    const now = new Date();
+    const diffMs = appointmentDateTime.getTime() - now.getTime();
+    const fourHoursMs = 4 * 60 * 60 * 1000;
+
+    // Vérification si la date est aujourd'hui et que le créneau est dans moins de 4 heures
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const isToday = appointmentDate.toDateString() === today.toDateString();
+    if (isToday && diffMs < fourHoursMs) {
+      return res.status(400).json({ message: 'Vous devez prendre rendez-vous au moins 4 heures à l\'avance.' });
+    }
+
+    // Validation des horaires d'ouverture selon le jour
+    const dayOfWeek = appointmentDate.getDay(); // 0 = dimanche, 6 = samedi
+    const isSaturday = dayOfWeek === 6;
+    const isSunday = dayOfWeek === 0;
+
+    if (isSunday) {
+      return res.status(400).json({ message: 'Aucun rendez-vous le dimanche.' });
+    }
+
+    if (isSaturday) {
+      // Samedi : 9h-13h, dernier créneau 12h30
+      if (hours < 9 || hours > 13 || (hours === 13 && minutes > 0)) {
+        return res.status(400).json({ message: 'Le samedi, les rendez-vous sont de 9h à 13h.' });
+      }
+      const startMinutes = hours * 60 + minutes;
+      if (startMinutes > 12 * 60 + 30) {
+        return res.status(400).json({ message: 'Le samedi, le dernier créneau est 12h30.' });
+      }
+    } else {
+      // Lundi à vendredi : 9h-18h, dernier créneau 17h30
+      if (hours < 9 || hours > 18 || (hours === 18 && minutes > 0)) {
+        return res.status(400).json({ message: 'Les rendez-vous sont de 9h à 18h (dernier créneau 17h30).' });
+      }
+      const startMinutes = hours * 60 + minutes;
+      if (startMinutes > 17 * 60 + 30) {
+        return res.status(400).json({ message: 'Le dernier créneau est 17h30.' });
+      }
+    }
+
+    // Vérifier si le créneau est déjà réservé
     const existing = await Appointment.findOne({
-      appointment_date: data.appointmentDate,
-      appointment_time: data.appointmentTime,
+      appointment_date: appointmentDate,
+      appointment_time: appointmentTime,
     });
     if (existing) return res.status(409).json({ message: 'Créneau déjà réservé.' });
 
@@ -20,42 +69,22 @@ exports.create = async (req, res) => {
       city_of_residence: data.cityOfResidence,
       visa_type: data.visaType,
       destination_country: data.destinationCountry,
-      appointment_date: new Date(data.appointmentDate),
-      appointment_time: data.appointmentTime,
+      appointment_date: appointmentDate,
+      appointment_time: appointmentTime,
       notification_method: data.notificationMethod || 'email',
     });
 
-    // Envoyer la confirmation au client (email avec PDF)
+    // Envoyer la confirmation (email avec PDF)
     try {
       const pdfBuffer = await generateConfirmationPDF(newAppointment);
       await sendConfirmationEmail(
         data.email,
-        'Confirmation de votre rendez-vous ZT Technologies',
+        'Confirmation de votre rendez-vous ZT Voyage',
         'Veuillez trouver ci-joint votre confirmation de rendez-vous.',
         pdfBuffer
       );
       newAppointment.confirmation_sent = true;
       await newAppointment.save();
-
-      // Notifier l'administrateur
-      try {
-        const adminEmail = process.env.ADMIN_EMAIL || 'ztvoyage@gmail.com';
-        const adminSubject = `Nouveau RDV - ${newAppointment.first_name} ${newAppointment.last_name}`;
-        const adminText = `Un nouveau rendez-vous a été pris.\n\n` +
-          `Date : ${newAppointment.appointment_date.toISOString().split('T')[0]} à ${newAppointment.appointment_time}\n` +
-          `Client : ${newAppointment.first_name} ${newAppointment.last_name}\n` +
-          `Email : ${newAppointment.email}\n` +
-          `Téléphone : ${newAppointment.whatsapp_number}\n` +
-          `Type de visa : ${newAppointment.visa_type}\n` +
-          `Destination : ${newAppointment.destination_country}\n` +
-          `Ville : ${newAppointment.city_of_residence}\n` +
-          `Notification : ${newAppointment.notification_method}`;
-
-        await sendConfirmationEmail(adminEmail, adminSubject, adminText, pdfBuffer);
-      } catch (e) {
-        console.error('Erreur notification admin:', e);
-      }
-
     } catch (err) {
       console.error('Erreur envoi confirmation:', err);
       // On continue même si l'email échoue

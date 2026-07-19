@@ -4,7 +4,6 @@ import { z } from 'zod';
 import { ChevronLeft, ChevronRight, Check, Loader2, AlertTriangle } from 'lucide-react';
 import api from '../../services/api';
 
-// Schéma Zod (inchangé pour la validation)
 const appointmentSchema = z.object({
   hasPassport: z.boolean().refine(v => v === true, 'Le passeport est obligatoire.'),
   firstName: z.string().min(2, 'Prénom requis'),
@@ -15,21 +14,67 @@ const appointmentSchema = z.object({
   visaType: z.enum(['VISITEUR', 'TRAVAIL', 'ETUDE'], { errorMap: () => ({ message: 'Type de visa requis' }) }),
   destinationCountry: z.string().min(2, 'Pays requis'),
   appointmentDate: z.string().refine(v => !isNaN(Date.parse(v)), 'Date invalide'),
-  appointmentTime: z.string().regex(/^(1[0-7]):(00|30)$|^18:00$/, 'Créneau entre 10h et 18h'),
+  appointmentTime: z.string().regex(/^(09|1[0-7]):(00|30)$|^18:00$/, 'Créneau entre 9h et 17h30'),
   notificationMethod: z.enum(['email', 'whatsapp']),
 });
 
-// Pays dynamiques
 const countriesMatrix = {
   VISITEUR: ['France', 'Belgique', 'Canada', 'Londres', 'Chine', 'Turquie', 'Luxembourg', 'Suisse', 'Pays-Bas', 'Allemagne', 'Autre pays Schengen'],
   TRAVAIL: ['Portugal', 'Belgique', 'Turquie', 'Dubaï', 'Canada', 'Chine'],
   ETUDE: ['France', 'Espagne', 'Portugal', 'Belgique', 'Canada'],
 };
 
+// Génère tous les créneaux possibles (9h-18h)
+const getAllTimeSlots = () => {
+  const slots = [];
+  for (let h = 9; h <= 18; h++) {
+    for (let m = 0; m < 60; m += 30) {
+      if (h === 18 && m > 0) break;
+      const time = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+      slots.push(time);
+    }
+  }
+  return slots;
+};
+
+// Retourne les créneaux disponibles selon le jour sélectionné
+const getAvailableSlots = (selectedDate) => {
+  if (!selectedDate) return [];
+  const day = new Date(selectedDate + 'T00:00:00').getDay(); // 0 = dimanche
+  const allSlots = getAllTimeSlots();
+
+  if (day === 0) return []; // dimanche fermé
+  if (day === 6) {
+    // Samedi : 9h - 12h30
+    return allSlots.filter(slot => {
+      const [h, m] = slot.split(':').map(Number);
+      const startMinutes = h * 60 + m;
+      return startMinutes >= 9 * 60 && startMinutes <= 12 * 60 + 30;
+    });
+  }
+  // Lundi à vendredi : 9h - 17h30
+  return allSlots.filter(slot => {
+    const [h, m] = slot.split(':').map(Number);
+    const startMinutes = h * 60 + m;
+    return startMinutes >= 9 * 60 && startMinutes <= 17 * 60 + 30;
+  });
+};
+
+// Vérifie si le créneau est trop proche (moins de 4 heures)
+const isSlotTooSoon = (selectedDate, time) => {
+  if (!selectedDate || !time) return false;
+  const now = new Date();
+  const [h, m] = time.split(':').map(Number);
+  const appointmentDateTime = new Date(selectedDate + 'T00:00:00');
+  appointmentDateTime.setHours(h, m, 0, 0);
+  const diffMs = appointmentDateTime.getTime() - now.getTime();
+  return diffMs < 4 * 60 * 60 * 1000;
+};
+
 export default function AppointmentForm() {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    hasPassport: false, // initialisé à false, l'utilisateur doit cliquer sur Oui
+    hasPassport: false,
     firstName: '',
     lastName: '',
     email: '',
@@ -44,14 +89,27 @@ export default function AppointmentForm() {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [bookedSlots, setBookedSlots] = useState([]); // créneaux occupés
+  const [bookedSlots, setBookedSlots] = useState([]);
+  const [availableSlots, setAvailableSlots] = useState([]);
 
   const updateField = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors(prev => ({ ...prev, [field]: undefined }));
   };
 
-  // Validation partielle selon l'étape
+  // Charge les créneaux disponibles et réservés quand la date change
+  useEffect(() => {
+    if (formData.appointmentDate) {
+      setAvailableSlots(getAvailableSlots(formData.appointmentDate));
+      api.get('/appointments/slots', { params: { date: formData.appointmentDate } })
+        .then(res => setBookedSlots(res.data.booked || []))
+        .catch(() => setBookedSlots([]));
+    } else {
+      setAvailableSlots([]);
+      setBookedSlots([]);
+    }
+  }, [formData.appointmentDate]);
+
   const validateStep = () => {
     try {
       if (step === 1) {
@@ -91,35 +149,21 @@ export default function AppointmentForm() {
     } catch (err) {
       if (err.response?.status === 409) {
         setErrors({ appointmentTime: 'Créneau déjà réservé' });
+      } else if (err.response?.status === 400) {
+        setErrors({ global: err.response.data.message });
       } else {
         setErrors({ global: 'Erreur serveur. Veuillez réessayer.' });
       }
     } finally { setIsSubmitting(false); }
   };
 
-  // Redirection WhatsApp si pas de passeport
   const handleNoPassport = () => {
     const whatsappNumber = import.meta.env.VITE_WHATSAPP_NUMBER || '22952431717';
     window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent("Bonjour, je souhaite prendre rendez-vous mais je n'ai pas de passeport.")}`, '_blank');
   };
 
-  // Récupération des créneaux occupés quand la date change
-  useEffect(() => {
-    if (formData.appointmentDate) {
-      api.get('/appointments/slots', { params: { date: formData.appointmentDate } })
-        .then(res => setBookedSlots(res.data.booked || []))
-        .catch(() => setBookedSlots([]));
-    } else {
-      setBookedSlots([]);
-    }
-  }, [formData.appointmentDate]);
-
-  // Classe pour les inputs
   const inputClass = (field) =>
     `w-full border ${errors[field] ? 'border-red-500' : 'border-gray-300'} rounded-lg p-3 outline-none focus:ring-2 focus:ring-primary`;
-
-  // Liste des heures possibles
-  const timeSlots = ['10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30','18:00'];
 
   return (
     <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8">
@@ -131,7 +175,6 @@ export default function AppointmentForm() {
         </motion.div>
       ) : (
         <>
-          {/* Indicateur d'étapes */}
           <div className="flex justify-center mb-8">
             {[1,2,3].map(s => (
               <div key={s} className="flex items-center">
@@ -142,7 +185,6 @@ export default function AppointmentForm() {
           </div>
 
           <AnimatePresence mode="wait">
-            {/* ÉTAPE 1 : PASSEPORT */}
             {step === 1 && (
               <motion.div key="step1" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
                 <h3 className="text-xl font-semibold mb-4">Étape 1 : Passeport</h3>
@@ -168,7 +210,6 @@ export default function AppointmentForm() {
               </motion.div>
             )}
 
-            {/* ÉTAPE 2 : INFOS PERSO */}
             {step === 2 && (
               <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                 <h3 className="text-xl font-semibold mb-4">Étape 2 : Informations personnelles</h3>
@@ -186,7 +227,12 @@ export default function AppointmentForm() {
                     {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
                   </div>
                   <div>
-                    <input placeholder="WhatsApp (ex: 0156035888)" className={inputClass('whatsappNumber')} value={formData.whatsappNumber} onChange={e => updateField('whatsappNumber', e.target.value)} />
+                    <input
+                      placeholder="WhatsApp (ex: 0156035888)"
+                      className={inputClass('whatsappNumber')}
+                      value={formData.whatsappNumber}
+                      onChange={e => updateField('whatsappNumber', e.target.value)}
+                    />
                     {errors.whatsappNumber && <p className="text-red-500 text-sm">{errors.whatsappNumber}</p>}
                   </div>
                   <div>
@@ -205,7 +251,6 @@ export default function AppointmentForm() {
               </motion.div>
             )}
 
-            {/* ÉTAPE 3 : DÉTAILS RENDEZ-VOUS */}
             {step === 3 && (
               <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                 <h3 className="text-xl font-semibold mb-4">Étape 3 : Détails du rendez-vous</h3>
@@ -232,7 +277,7 @@ export default function AppointmentForm() {
                       className={inputClass('appointmentDate')}
                       value={formData.appointmentDate}
                       onChange={e => updateField('appointmentDate', e.target.value)}
-                      min={new Date().toISOString().split('T')[0]} // empêche les dates passées
+                      min={new Date().toISOString().split('T')[0]}
                     />
                     {errors.appointmentDate && <p className="text-red-500 text-sm">{errors.appointmentDate}</p>}
                   </div>
@@ -243,11 +288,17 @@ export default function AppointmentForm() {
                       onChange={e => updateField('appointmentTime', e.target.value)}
                     >
                       <option value="">Heure</option>
-                      {timeSlots.map(t => (
-                        <option key={t} value={t} disabled={bookedSlots.includes(t)}>
-                          {t} {bookedSlots.includes(t) ? '(réservé)' : ''}
-                        </option>
-                      ))}
+                      {availableSlots.map(t => {
+                        const booked = bookedSlots.includes(t);
+                        const tooSoon = isSlotTooSoon(formData.appointmentDate, t);
+                        return (
+                          <option key={t} value={t} disabled={booked || tooSoon}>
+                            {t}
+                            {booked ? ' (réservé)' : ''}
+                            {!booked && tooSoon ? ' (trop proche)' : ''}
+                          </option>
+                        );
+                      })}
                     </select>
                     {errors.appointmentTime && <p className="text-red-500 text-sm">{errors.appointmentTime}</p>}
                   </div>
@@ -258,7 +309,6 @@ export default function AppointmentForm() {
 
           {errors.global && <p className="text-red-500 text-center mt-4">{errors.global}</p>}
 
-          {/* Boutons de navigation */}
           <div className="flex justify-between mt-8">
             {step > 1 && (
               <button onClick={prevStep} className="flex items-center gap-2 text-gray-600 hover:text-primary">

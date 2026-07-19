@@ -1,3 +1,5 @@
+// backend/src/controllers/adminController.js
+
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Article = require('../models/Article');
@@ -17,9 +19,9 @@ exports.login = async (req, res) => {
     const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1d' });
     res.cookie('token', token, {
       httpOnly: true,
-      secure: true,               // nécessaire pour sameSite: 'none'
-      sameSite: 'none',           // autorise les requêtes cross-origin
-      maxAge: 86400000,           // 1 jour
+      secure: true,
+      sameSite: 'none',
+      maxAge: 86400000,
     });
     res.json({ success: true });
   } catch (err) {
@@ -89,24 +91,13 @@ exports.getAppointments = async (req, res) => {
   try {
     const { start, end, visa_type, destination } = req.query;
     const filter = {};
-
-    // Filtres de dates
     if (start || end) {
       filter.appointment_date = {};
       if (start) filter.appointment_date.$gte = new Date(start);
       if (end) filter.appointment_date.$lte = new Date(end);
     }
-
-    // Filtre par type de visa
-    if (visa_type && visa_type !== 'all') {
-      filter.visa_type = visa_type;
-    }
-
-    // Filtre par destination (recherche exacte ou partielle)
-    if (destination) {
-      filter.destination_country = { $regex: destination, $options: 'i' };
-    }
-
+    if (visa_type && visa_type !== 'all') filter.visa_type = visa_type;
+    if (destination) filter.destination_country = { $regex: destination, $options: 'i' };
     const appointments = await Appointment.find(filter).sort({ appointment_date: -1 });
     res.json(appointments);
   } catch (err) {
@@ -121,12 +112,21 @@ exports.getTodayAppointments = async (req, res) => {
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
-
     const appointments = await Appointment.find({
       appointment_date: { $gte: today, $lt: tomorrow },
     }).sort({ appointment_time: 1 });
-
     res.json(appointments);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erreur serveur.' });
+  }
+};
+
+exports.deleteAppointment = async (req, res) => {
+  try {
+    const appointment = await Appointment.findByIdAndDelete(req.params.id);
+    if (!appointment) return res.status(404).json({ message: 'Rendez-vous non trouvé.' });
+    res.json({ success: true });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Erreur serveur.' });
@@ -136,7 +136,6 @@ exports.getTodayAppointments = async (req, res) => {
 // --------------- STATISTIQUES ---------------
 exports.getStats = async (req, res) => {
   try {
-    // Rendez-vous par mois (6 derniers mois)
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
     const monthly = await Appointment.aggregate([
@@ -145,12 +144,10 @@ exports.getStats = async (req, res) => {
       { $sort: { _id: 1 } }
     ]);
 
-    // Par type de visa
     const byVisaType = await Appointment.aggregate([
       { $group: { _id: '$visa_type', count: { $sum: 1 } } }
     ]);
 
-    // Destinations les plus demandées
     const byDestination = await Appointment.aggregate([
       { $group: { _id: '$destination_country', count: { $sum: 1 } } },
       { $sort: { count: -1 } },
@@ -169,24 +166,16 @@ exports.exportAppointmentsPDF = async (req, res) => {
   try {
     const { start, end, visa_type, destination } = req.query;
     const filter = {};
-
     if (start || end) {
       filter.appointment_date = {};
       if (start) filter.appointment_date.$gte = new Date(start);
       if (end) filter.appointment_date.$lte = new Date(end);
     }
-
-    if (visa_type && visa_type !== 'all') {
-      filter.visa_type = visa_type;
-    }
-
-    if (destination) {
-      filter.destination_country = { $regex: destination, $options: 'i' };
-    }
+    if (visa_type && visa_type !== 'all') filter.visa_type = visa_type;
+    if (destination) filter.destination_country = { $regex: destination, $options: 'i' };
 
     const appointments = await Appointment.find(filter).sort({ appointment_date: 1 });
 
-    // Document en paysage A4
     const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margin: 30 });
     const buffers = [];
     doc.on('data', (chunk) => buffers.push(chunk));
@@ -197,7 +186,7 @@ exports.exportAppointmentsPDF = async (req, res) => {
       res.send(pdfBuffer);
     });
 
-    // Logo (si présent)
+    // Logo
     const logoPath = path.join(__dirname, '../assets/logo.png');
     try {
       if (fs.existsSync(logoPath)) {
@@ -206,7 +195,6 @@ exports.exportAppointmentsPDF = async (req, res) => {
       }
     } catch (e) { /* ignore */ }
 
-    // Titre
     doc.moveDown(3);
     doc.fontSize(20).fillColor('#DC2626').font('Helvetica-Bold')
        .text('ZT Voyage – Rendez-vous', { align: 'center' });
@@ -225,17 +213,14 @@ exports.exportAppointmentsPDF = async (req, res) => {
       doc.moveDown(0.5);
     }
 
-    // Définition des colonnes (largeurs en points)
     const startX = 30;
-    const colWidths = [60, 50, 70, 150, 90, 80, 140, 60]; // total = 700, largeur utile 781 (OK)
+    const colWidths = [60, 50, 70, 150, 90, 80, 140, 60];
     const headers = ['Date', 'Heure', 'Type visa', 'Nom complet', 'Destination', 'Ville', 'Contact', 'Notif.'];
     const headerHeight = 20;
     const rowHeight = 28;
-
     let xCursor = startX;
-    const tableTop = doc.y + 10; // laisser un peu d'espace après le titre
+    const tableTop = doc.y + 10;
 
-    // En-tête du tableau
     doc.fontSize(10).font('Helvetica-Bold').fillColor('#FFFFFF');
     doc.rect(startX, tableTop, doc.page.width - 60, headerHeight).fill('#1F2937');
     doc.fillColor('#FFFFFF');
@@ -247,42 +232,24 @@ exports.exportAppointmentsPDF = async (req, res) => {
     doc.fillColor('#374151').font('Helvetica').fontSize(9);
     let y = tableTop + headerHeight;
 
-    // Lignes
     appointments.forEach((apt, index) => {
-      // Fond alterné
       if (index % 2 === 0) {
         doc.rect(startX, y, doc.page.width - 60, rowHeight).fill('#F9FAFB');
       }
       doc.fillColor('#374151');
-
       const dateStr = new Date(apt.appointment_date).toLocaleDateString('fr-FR');
       const fullName = `${apt.first_name} ${apt.last_name}`;
       const contact = `${apt.email}\n${apt.whatsapp_number}`;
-
       xCursor = startX;
-      const rowData = [
-        dateStr,
-        apt.appointment_time,
-        apt.visa_type,
-        fullName,
-        apt.destination_country,
-        apt.city_of_residence,
-        contact,
-        apt.notification_method,
-      ];
-
+      const rowData = [dateStr, apt.appointment_time, apt.visa_type, fullName, apt.destination_country, apt.city_of_residence, contact, apt.notification_method];
       rowData.forEach((text, i) => {
         doc.text(text, xCursor + 2, y + 2, { width: colWidths[i] - 4, align: 'left', lineGap: 2 });
         xCursor += colWidths[i];
       });
-
       y += rowHeight;
-
-      // Saut de page
       if (y > doc.page.height - 50) {
         doc.addPage();
         y = 50;
-        // Redessiner l'en-tête
         xCursor = startX;
         doc.rect(startX, y, doc.page.width - 60, headerHeight).fill('#1F2937');
         doc.fillColor('#FFFFFF').font('Helvetica-Bold').fontSize(10);
@@ -295,10 +262,7 @@ exports.exportAppointmentsPDF = async (req, res) => {
       }
     });
 
-    // Ligne de fin
     doc.moveTo(startX, y).lineTo(doc.page.width - 30, y).strokeColor('#E5E7EB').stroke();
-
-    // Pied de page
     doc.fontSize(9).fillColor('#9CA3AF').text(
       `Document généré le ${new Date().toLocaleDateString('fr-FR')} – ZT Voyage`,
       startX, doc.page.height - 40, { align: 'center' }
