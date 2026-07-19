@@ -30,7 +30,9 @@ export default function Home() {
         <title>ZT-Voyage – Visas, études, voyages au Bénin</title>
         <meta
           name="description"
-          content="Agence de services administratifs et voyages à Cotonou, Bénin. Obtenez votre visa, vos documents (CIP, casier judiciaire) et préparez vos études à l'étranger."
+          content="ZT Technologie et Voyage est une agence spécialisée dans l'orientation et les renseignements sur les procédures de voyage. 
+          Nous sommes situés à Cotonou, zone de la maternité Aidjedo. Nous accompagnos nos clients dans l'obtention de divers visas, notamment pour le Portugal, le Canada, Dubaï et plusieurs pays européens.
+          Notre objectif est de vous offrir un suivi personnalisé et fiable pour la réussite de votre projet de voyage."
         />
         <link rel="canonical" href="https://zt-voyage.com" />
       </Helmet>
