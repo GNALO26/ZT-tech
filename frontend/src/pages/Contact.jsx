@@ -103,8 +103,8 @@ export default function Contact() {
           <h2 className="text-xl font-semibold">Nos coordonnées</h2>
           <div className="space-y-3 text-gray-700">
             <p className="flex items-center gap-2"><MapPin className="w-5 h-5 text-primary" /> Cotonou, Bénin</p>
-            <p className="flex items-center gap-2"><Phone className="w-5 h-5 text-primary" /> +229 00 00 00 00</p>
-            <p className="flex items-center gap-2"><Mail className="w-5 h-5 text-primary" /> contact@zttechnologies.bj</p>
+            <p className="flex items-center gap-2"><Phone className="w-5 h-5 text-primary" /> +229 01 52 43 17 17</p>
+            <p className="flex items-center gap-2"><Mail className="w-5 h-5 text-primary" /> ztvoyage@gmail.com</p>
           </div>
           <MapComponent />
         </div>

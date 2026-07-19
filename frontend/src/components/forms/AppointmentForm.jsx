@@ -243,7 +243,7 @@ export default function AppointmentForm() {
                     <label className="block text-sm font-medium mb-1">Recevoir la confirmation par</label>
                     <select className={inputClass('notificationMethod')} value={formData.notificationMethod} onChange={e => updateField('notificationMethod', e.target.value)}>
                       <option value="email">Email</option>
-                      <option value="whatsapp">WhatsApp</option>
+                    
                     </select>
                     {errors.notificationMethod && <p className="text-red-500 text-sm">{errors.notificationMethod}</p>}
                   </div>
