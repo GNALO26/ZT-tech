@@ -44,7 +44,7 @@ export default function Home() {
             Votre avenir commence ici
           </h1>
           <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-6 md:mb-8 drop-shadow">
-            Visa, études, voyage : nous vous accompagnons de A à Z
+            Visa études, travail et visite dans tous les pays: nous vous accompagnons de A à Z
           </p>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
             <Link

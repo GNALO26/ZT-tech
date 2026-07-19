@@ -28,7 +28,7 @@ export default function Footer() {
         <div>
           <h4 className="font-semibold mb-3 text-white dark:text-gray-100">Contact</h4>
           <address className="not-italic space-y-2 text-gray-400 dark:text-gray-300">
-            <p className="flex items-center gap-2"><MapPin className="w-4 h-4" aria-hidden="true" /> Cotonou, Quartier Zongo</p>
+            <p className="flex items-center gap-2"><MapPin className="w-4 h-4" aria-hidden="true" /> Cotonou, Quartier Aidjedo</p>
             <p className="flex items-center gap-2"><Phone className="w-4 h-4" aria-hidden="true" /> +229 52 43 17 17</p>
             <div className="flex gap-4 mt-3">
               <a href="#" aria-label="Facebook"><Facebook className="w-5 h-5 hover:text-primary dark:hover:text-white transition" /></a>
