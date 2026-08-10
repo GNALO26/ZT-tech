@@ -6,17 +6,22 @@ export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [dark, setDark] = useState(false);
 
+  // Initialiser le thème au chargement
   useEffect(() => {
     const stored = localStorage.getItem('theme');
     if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       setDark(true);
       document.documentElement.classList.add('dark');
+    } else {
+      setDark(false);
+      document.documentElement.classList.remove('dark');
     }
   }, []);
 
   const toggleTheme = () => {
-    setDark(!dark);
-    if (!dark) {
+    const newDark = !dark;
+    setDark(newDark);
+    if (newDark) {
       document.documentElement.classList.add('dark');
       localStorage.setItem('theme', 'dark');
     } else {
@@ -28,9 +33,9 @@ export default function Header() {
   return (
     <header className="bg-white dark:bg-gray-900 shadow-md fixed w-full z-20">
       <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-        <Link to="/" className="flex items-center gap-2 text-primary font-bold text-lg md:text-xl">
-          <img src="/logo.png" alt="ZT Technologies" className="h-8 w-auto md:h-10" />
-          ZT Voyage
+        <Link to="/" className="flex items-center gap-2 text-primary dark:text-white font-bold text-xl" aria-label="Accueil ZT-Voyage">
+          <Plane className="w-6 h-6" />
+          ZT-Voyage
         </Link>
 
         <nav className="hidden md:flex gap-6 text-gray-700 dark:text-gray-300 font-medium" role="navigation" aria-label="Menu principal">
@@ -43,7 +48,6 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-4">
-          {/* Basculement mode sombre */}
           <button
             onClick={toggleTheme}
             className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:ring-2 ring-primary transition"
@@ -52,7 +56,6 @@ export default function Header() {
             {dark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </button>
 
-          {/* Menu mobile */}
           <button className="md:hidden" onClick={() => setIsOpen(!isOpen)} aria-label={isOpen ? 'Fermer le menu' : 'Ouvrir le menu'}>
             {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>

@@ -50,11 +50,11 @@ export default function Chatbot() {
       window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Bonjour ZT-Voyage, je souhaite discuter avec un conseiller.')}`, '_blank');
       return;
     }
-    const messages = {
+    const msgs = {
       admin: "Bonjour, je souhaite une assistance pour documents administratifs.",
       visa: "Bonjour, je souhaite des informations sur les visas.",
     };
-    const text = messages[type] || '';
+    const text = msgs[type] || '';
     if (text) handleSend(text);
   };
 
@@ -86,7 +86,6 @@ export default function Chatbot() {
             transition={{ duration: 0.2 }}
             className="bg-white dark:bg-gray-800 w-80 sm:w-96 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col"
           >
-            {/* En-tête */}
             <div className="bg-primary p-4 text-white flex justify-between items-center">
               <div>
                 <h3 className="font-bold text-sm">Assistant ZT-Voyage</h3>
@@ -97,7 +96,6 @@ export default function Chatbot() {
               </button>
             </div>
 
-            {/* Messages */}
             <div className="flex-1 p-4 space-y-3 bg-gray-50 dark:bg-gray-900 overflow-y-auto max-h-80">
               {messages.map((msg, i) => (
                 <motion.div
@@ -130,50 +128,28 @@ export default function Chatbot() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Boutons rapides */}
             <div className="p-3 border-t dark:border-gray-700 bg-white dark:bg-gray-800 space-y-2">
               <div className="flex gap-2 flex-wrap">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => handleOption('rdv')}
-                  className="flex-1 bg-primary/10 text-primary text-xs font-semibold py-2 px-2 rounded-lg hover:bg-primary/20 transition"
-                >
-                  📅 Prendre RDV
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => handleOption('admin')}
-                  className="flex-1 bg-primary/10 text-primary text-xs font-semibold py-2 px-2 rounded-lg hover:bg-primary/20 transition"
-                >
-                  📄 Documents
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => handleOption('visa')}
-                  className="flex-1 bg-primary/10 text-primary text-xs font-semibold py-2 px-2 rounded-lg hover:bg-primary/20 transition"
-                >
-                  ✈️ Visas
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => handleOption('whatsapp')}
-                  className="flex-1 bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-200 border border-green-200 dark:border-green-700 text-xs font-semibold py-2 px-2 rounded-lg hover:bg-green-100 dark:hover:bg-green-800 transition"
-                  aria-label="Discuter en direct sur WhatsApp"
-                >
-                  💬 Direct
-                </motion.button>
+                {[
+                  { label: '📅 RDV', action: 'rdv' },
+                  { label: '📄 Documents', action: 'admin' },
+                  { label: '✈️ Visas', action: 'visa' },
+                  { label: '💬 Direct', action: 'whatsapp', className: 'bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-200 border-green-200 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-800' },
+                ].map(btn => (
+                  <motion.button
+                    key={btn.action}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => handleOption(btn.action)}
+                    className={`flex-1 text-xs font-semibold py-2 px-2 rounded-lg transition ${btn.className || 'bg-primary/10 text-primary hover:bg-primary/20'}`}
+                  >
+                    {btn.label}
+                  </motion.button>
+                ))}
               </div>
 
-              {/* Saisie libre */}
               <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleSend(input);
-                }}
+                onSubmit={(e) => { e.preventDefault(); handleSend(input); }}
                 className="flex items-center gap-2"
               >
                 <input
