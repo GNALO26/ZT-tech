@@ -6,7 +6,6 @@ export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [dark, setDark] = useState(false);
 
-  // Initialiser le thème au chargement
   useEffect(() => {
     const stored = localStorage.getItem('theme');
     if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -33,18 +32,18 @@ export default function Header() {
   return (
     <header className="bg-white dark:bg-gray-900 shadow-md fixed w-full z-20">
       <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-        <Link to="/" className="flex items-center gap-2 text-primary dark:text-white font-bold text-xl" aria-label="Accueil ZT-Voyage">
-          <Plane className="w-6 h-6" />
-          ZT-Voyage
+        <Link to="/" className="flex items-center gap-2 font-bold text-xl" aria-label="Accueil ZT-Voyage">
+          <img src="/logo.png" alt="ZT Voyage" className="h-10 w-auto" />
+          <span className="text-primary dark:text-white">ZT-Voyage</span>
         </Link>
 
         <nav className="hidden md:flex gap-6 text-gray-700 dark:text-gray-300 font-medium" role="navigation" aria-label="Menu principal">
-          <Link to="/" className="hover:text-primary dark:hover:text-white transition">Accueil</Link>
-          <Link to="/rdv" className="hover:text-primary dark:hover:text-white transition">Rendez-vous</Link>
-          <Link to="/blog" className="hover:text-primary dark:hover:text-white transition">Blog</Link>
-          <Link to="/services" className="hover:text-primary dark:hover:text-white transition">Services</Link>
-          <Link to="/about" className="hover:text-primary dark:hover:text-white transition">À propos</Link>
-          <Link to="/contact" className="hover:text-primary dark:hover:text-white transition">Contact</Link>
+          <Link to="/" className="hover:text-primary dark:hover:text-red-400 transition">Accueil</Link>
+          <Link to="/rdv" className="hover:text-primary dark:hover:text-red-400 transition">Rendez-vous</Link>
+          <Link to="/blog" className="hover:text-primary dark:hover:text-red-400 transition">Blog</Link>
+          <Link to="/services" className="hover:text-primary dark:hover:text-red-400 transition">Services</Link>
+          <Link to="/about" className="hover:text-primary dark:hover:text-red-400 transition">À propos</Link>
+          <Link to="/contact" className="hover:text-primary dark:hover:text-red-400 transition">Contact</Link>
         </nav>
 
         <div className="flex items-center gap-4">
