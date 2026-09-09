@@ -10,7 +10,7 @@ export default function Blog() {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortOrder, setSortOrder] = useState('recent'); // 'recent' ou 'oldest'
+  const [sortOrder, setSortOrder] = useState('recent');
 
   useEffect(() => {
     const fetchArticles = async () => {
@@ -71,7 +71,7 @@ export default function Blog() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {articles.map(article => (
             <motion.div
-              whileHover={{ scale: 1.02 }}
+              whileHover={{ y: -5 }}
               key={article._id || article.slug}
               className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden flex flex-col"
             >
@@ -79,7 +79,7 @@ export default function Blog() {
                 <img
                   src={article.featured_image_url || '/images/placeholder.jpg'}
                   alt={article.title}
-                  className="w-full h-48 object-cover"
+                  className="w-full h-56 object-cover"
                   loading="lazy"
                 />
               </Link>
@@ -95,8 +95,6 @@ export default function Blog() {
                     {article.content.replace(/<[^>]+>/g, '').substring(0, 100)}...
                   </p>
                 )}
-
-                {/* Bouton Lire la suite */}
                 <div className="mt-auto flex justify-end">
                   <Link
                     to={`/blog/${article.slug}`}
@@ -105,7 +103,6 @@ export default function Blog() {
                     Lire la suite <ArrowRight className="w-4 h-4" />
                   </Link>
                 </div>
-
                 <div className="mt-3 border-t pt-3 dark:border-gray-700">
                   <Reactions articleId={article._id} />
                 </div>

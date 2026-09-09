@@ -3,6 +3,7 @@ import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 import Chatbot from '../components/common/Chatbot';
 import BackToTop from '../components/common/BackToTop';
+import NewsletterPopup from '../components/common/NewsletterPopup';
 
 export default function MainLayout() {
   return (
@@ -14,6 +15,7 @@ export default function MainLayout() {
       <Footer />
       <BackToTop />
       <Chatbot />
+      <NewsletterPopup />
     </div>
   );
 }

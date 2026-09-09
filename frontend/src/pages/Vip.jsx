@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
-import { Crown, ArrowRight } from 'lucide-react';
+import { Crown, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 export default function Vip() {
   return (
@@ -17,11 +17,18 @@ export default function Vip() {
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 mb-8">
         <h2 className="text-2xl font-semibold mb-4">Avantages VIP</h2>
         <ul className="space-y-3 text-gray-700 dark:text-gray-300">
-          <li>🌟 Suivi individuel par un expert dédié</li>
-          <li>🌟 Réponses prioritaires sur WhatsApp</li>
-          <li>🌟 Coaching intensif avant entretien</li>
-          <li>🌟 Assistance complète de A à Z</li>
-          <li>🌟 Accès à des ressources exclusives</li>
+          {[
+            'Suivi individuel par un expert dédié',
+            'Réponses prioritaires sur WhatsApp',
+            'Coaching intensif avant entretien',
+            'Assistance complète de A à Z',
+            'Accès à des ressources exclusives',
+          ].map((item, i) => (
+            <li key={i} className="flex items-center gap-3">
+              <CheckCircle2 className="w-6 h-6 text-yellow-500 flex-shrink-0" />
+              {item}
+            </li>
+          ))}
         </ul>
       </div>
       <div className="text-center">
