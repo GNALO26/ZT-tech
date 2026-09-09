@@ -63,7 +63,7 @@ export default function About() {
           <h3 className="text-xl font-semibold mb-4">Nos coordonnées</h3>
           <p className="flex items-center gap-2 mb-2"><MapPin className="w-5 h-5 text-primary" /> Cotonou, Quartier Djidjè</p>
           <p className="flex items-center gap-2 mb-2"><Phone className="w-5 h-5 text-primary" /> +229 01 52 43 17 17</p>
-          <p className="flex items-center gap-2"><Mail className="w-5 h-5 text-primary" /> contact@zt-voyage.com</p>
+          <p className="flex items-center gap-2"><Mail className="w-5 h-5 text-primary" /> zacharietechnologie@gmail.com</p>
         </div>
       </div>
 
@@ -74,7 +74,6 @@ export default function About() {
           {[
             { name: 'Membre 1', role: 'Fondateur', image: '/images/agence/equipe.jpg' },
             { name: 'Membre 2', role: 'Responsable Visa', image: '/images/agence/equipe.jpg' },
-            { name: 'Membre 3', role: 'Conseiller études', image: '/images/agence/equipe.jpg' },
           ].map((member, i) => (
             <div key={i} className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden">
               <img src={member.image} alt={member.name} className="w-full h-56 object-cover" loading="lazy" />
