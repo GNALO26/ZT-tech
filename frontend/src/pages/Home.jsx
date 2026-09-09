@@ -69,10 +69,10 @@ export default function Home() {
           <h2 className="text-3xl font-bold text-center mb-10 text-accent dark:text-white">Destinations populaires</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { name: 'France', image: '/images/destinations/france.jpg', desc: 'Visa tourisme, études, travail' },
-              { name: 'Canada', image: '/images/destinations/canada.jpg', desc: 'Études et immigration' },
-              { name: 'Chine', image: '/images/destinations/chine.jpg', desc: 'Visa affaires et tourisme' },
-              { name: 'Turquie', image: '/images/destinations/turquie.jpg', desc: 'Voyages et études' },
+              { name: 'France', image: '/destinations/france.jpg', desc: 'Visa tourisme, études, travail' },
+              { name: 'Canada', image: '/destinations/canada.jpg', desc: 'Études et immigration' },
+              { name: 'Chine', image: '/destinations/chine.jpg', desc: 'Visa affaires et tourisme' },
+              { name: 'Turquie', image: '/destinations/turquie.jpg', desc: 'Voyages et études' },
             ].map((dest, i) => (
               <DestinationCard key={i} {...dest} />
             ))}
@@ -91,15 +91,18 @@ export default function Home() {
           <h2 className="text-3xl font-bold text-center mb-10 text-accent dark:text-white">Nos services</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { icon: FileText, title: 'Documents administratifs', desc: 'CIP, casier judiciaire, acte de naissance...', link: '/services' },
-              { icon: Globe, title: 'Visas & Voyages', desc: 'Tourisme, travail, études à l\'étranger.', link: '/rdv' },
-              { icon: GraduationCap, title: 'Formations & Coaching', desc: 'Développez vos compétences avec nos experts.', link: '/formations' },
+              { icon: FileText, title: 'Documents administratifs', desc: 'CIP, casier judiciaire, acte de naissance...', link: '/services', image: '/services/documents.jpg' },
+              { icon: Globe, title: 'Visas & Voyages', desc: 'Tourisme, travail, études à l\'étranger.', link: '/rdv', image: '/services/visa.jpg' },
+              { icon: GraduationCap, title: 'Formations & Coaching', desc: 'Développez vos compétences avec nos experts.', link: '/formations', image: '/formations/informatique.jpg' },
             ].map((service, i) => (
-              <motion.div key={i} whileHover={{ scale: 1.02 }} className="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl shadow-md border border-gray-100 dark:border-gray-700">
-                <service.icon className="w-12 h-12 text-primary mb-4" />
-                <h3 className="text-xl font-semibold mb-2 text-accent dark:text-white">{service.title}</h3>
-                <p className="text-gray-600 dark:text-gray-300 mb-4">{service.desc}</p>
-                <Link to={service.link} className="text-primary dark:text-red-400 font-medium hover:underline">En savoir plus</Link>
+              <motion.div key={i} whileHover={{ scale: 1.03 }} className="bg-gray-50 dark:bg-gray-800 rounded-xl overflow-hidden shadow-md border border-gray-100 dark:border-gray-700">
+                <img src={service.image} alt={service.title} className="w-full h-48 object-cover" loading="lazy" />
+                <div className="p-6">
+                  <service.icon className="w-10 h-10 text-primary mb-3" />
+                  <h3 className="text-xl font-semibold mb-2 text-accent dark:text-white">{service.title}</h3>
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">{service.desc}</p>
+                  <Link to={service.link} className="text-primary dark:text-red-400 font-medium hover:underline">En savoir plus</Link>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -113,19 +116,19 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <FormationCard
               title="Formation en informatique"
-              image="/images/formations/informatique.jpg"
+              image="/formations/informatique.jpg"
               category="formation"
               duration="3 mois"
             />
             <FormationCard
               title="Coaching visa"
-              image="/images/formations/coaching.jpg"
+              image="/formations/coaching.jpg"
               category="coaching"
               duration="1 séance"
             />
             <FormationCard
               title="Préparation entretien consulaire"
-              image="/images/formations/entretien.jpg"
+              image="/formations/entretien.jpg"
               category="coaching"
               duration="2 heures"
             />

@@ -44,7 +44,7 @@ export default function About() {
         </div>
         <div className="bg-gray-50 rounded-xl p-6">
           <h3 className="text-xl font-semibold mb-4">Nos coordonnées</h3>
-          <p className="flex items-center gap-2 mb-2"><MapPin className="w-5 h-5 text-primary" /> Cotonou, Quartier Zongo</p>
+          <p className="flex items-center gap-2 mb-2"><MapPin className="w-5 h-5 text-primary" /> Cotonou, Quartier Djidjè</p>
           <p className="flex items-center gap-2 mb-2"><Phone className="w-5 h-5 text-primary" /> +229 52 43 17 17</p>
           <p className="flex items-center gap-2"><Mail className="w-5 h-5 text-primary" /> contact@zt-voyage.bj</p>
         </div>

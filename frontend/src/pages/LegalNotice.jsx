@@ -13,7 +13,7 @@ export default function LegalNotice() {
           <h2 className="text-xl font-semibold">Éditeur du site</h2>
           <p>
             <strong>ZT‑Voyage</strong><br />
-            Siège social : Cotonou, Quartier Zongo, Bénin<br />
+            Siège social : Cotonou, Quartier Djidjè, Bénin<br />
             Téléphone : +229 52 43 17 17<br />
             Email : contact@zt-voyage.bj<br />
             Directeur de la publication : [Nom du responsable]
