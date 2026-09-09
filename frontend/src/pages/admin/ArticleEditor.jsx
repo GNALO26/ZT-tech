@@ -24,7 +24,7 @@ export default function ArticleEditor() {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(isEditing);
   const [error, setError] = useState('');
-  const [showEditor, setShowEditor] = useState(true);   // bascule pour afficher/masquer l'éditeur de contenu
+  const [showEditor, setShowEditor] = useState(true);
 
   useEffect(() => {
     if (isEditing) {
@@ -64,24 +64,25 @@ export default function ArticleEditor() {
     e.preventDefault();
     setLoading(true);
     setError('');
-    try {
-      const formData = new FormData();
-      formData.append('title', form.title);
-      formData.append('slug', form.slug);
-      formData.append('content', form.content);
-      formData.append('metaTitle', form.metaTitle);
-      formData.append('metaDescription', form.metaDescription);
-      if (image) {
-        formData.append('featured_image', image);
-      }
 
+    const formData = new FormData();
+    formData.append('title', form.title);
+    formData.append('slug', form.slug);
+    formData.append('content', form.content);
+    formData.append('metaTitle', form.metaTitle);
+    formData.append('metaDescription', form.metaDescription);
+    if (image) {
+      formData.append('featured_image', image);
+    }
+
+    try {
       if (isEditing) {
         await api.put(`/admin/articles/${id}`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
+          headers: { 'Content-Type': 'multipart/form-data' }
         });
       } else {
         await api.post('/admin/articles', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
+          headers: { 'Content-Type': 'multipart/form-data' }
         });
       }
       navigate('/admin/articles');
@@ -111,7 +112,6 @@ export default function ArticleEditor() {
           <input type="text" className="w-full border rounded-lg p-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value={form.slug} onChange={e => setForm({...form, slug: e.target.value})} required />
         </div>
 
-        {/* Bascule éditeur de contenu */}
         <div className="flex items-center gap-2">
           <button type="button" onClick={() => setShowEditor(!showEditor)} className="text-sm text-primary hover:underline flex items-center gap-1">
             {showEditor ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -158,7 +158,7 @@ export default function ArticleEditor() {
           </div>
         </div>
         {error && <p className="text-red-500">{error}</p>}
-        <button type="submit" disabled={loading} className="bg-primary text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition flex items-center gap-2 disabled:opacity-50">
+        <button type="submit" disabled={loading} className="bg-primary text-white px-6 py-3 rounded-lg hover:bg-red-700 transition flex items-center gap-2 disabled:opacity-50">
           <Save className="w-4 h-4" />
           {loading ? 'Enregistrement...' : 'Enregistrer'}
         </button>

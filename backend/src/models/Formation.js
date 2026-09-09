@@ -1,3 +1,4 @@
+// backend/src/models/Formation.js
 const mongoose = require('mongoose');
 
 const formationSchema = new mongoose.Schema({

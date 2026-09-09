@@ -13,7 +13,7 @@ const upload = require('../middleware/upload');
 router.post('/login', ctrl.login);
 router.get('/me', auth, ctrl.me);
 
-// Articles (avec upload d'image)
+// Articles
 router.get('/articles', auth, ctrl.getAllArticles);
 router.post('/articles', auth, upload.single('featured_image'), (req, res, next) => {
   if (req.file) req.body.featuredImageUrl = `/uploads/articles/${req.file.filename}`;
@@ -34,14 +34,14 @@ router.delete('/appointments/:id', auth, ctrl.deleteAppointment);
 // Statistiques
 router.get('/stats', auth, ctrl.getStats);
 
-// Abonnés (newsletter)
+// Abonnés
 router.get('/subscribers', auth, subscriberCtrl.getAll);
 router.delete('/subscribers/:id', auth, subscriberCtrl.deleteSubscriber);
 
-// Formations & coaching (CRUD admin)
-router.get('/formations', auth, formationCtrl.list); // liste admin (peut réutiliser)
-router.post('/formations', auth, upload.single('image'), formationCtrl.create); // si upload d'image, adapter
-router.put('/formations/:id', auth, formationCtrl.update);
+// Formations & Coaching (CRUD)
+router.get('/formations', auth, formationCtrl.list);
+router.post('/formations', auth, upload.single('image'), formationCtrl.create);
+router.put('/formations/:id', auth, upload.single('image'), formationCtrl.update);
 router.delete('/formations/:id', auth, formationCtrl.delete);
 
 // Demandes VIP
