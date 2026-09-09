@@ -2,12 +2,13 @@ import { motion } from 'framer-motion';
 import VideoBackground from '../components/common/VideoBackground';
 import SearchBar from '../components/common/SearchBar';
 import { Link } from 'react-router-dom';
-import { ArrowRight, FileText, Globe, GraduationCap, Award, Users, Target, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, FileText, Globe, GraduationCap, Award, Users, Target, ChevronRight } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import LocalBusinessSchema from '../components/common/StructuredData';
 import NewsletterSubscribe from '../components/blog/NewsletterSubscribe';
 import DestinationCard from '../components/services/DestinationCard';
 import FormationCard from '../components/services/FormationCard';
+import ServiceCard from '../components/services/ServiceCard';
 
 const heroVideos = [
   '/videos/hero1.mp4',
@@ -86,23 +87,35 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Services */}
+      {/* Services avec images */}
       <section className="py-16 bg-white dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-10 text-accent dark:text-white">Nos services</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              { icon: FileText, title: 'Documents administratifs', desc: 'CIP, casier judiciaire, acte de naissance...', link: '/services' },
-              { icon: Globe, title: 'Visas & Voyages', desc: 'Tourisme, travail, études à l\'étranger.', link: '/rdv' },
-              { icon: GraduationCap, title: 'Formations & Coaching', desc: 'Développez vos compétences avec nos experts.', link: '/formations' },
-            ].map((service, i) => (
-              <motion.div key={i} whileHover={{ scale: 1.02 }} className="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl shadow-md border border-gray-100 dark:border-gray-700">
-                <service.icon className="w-12 h-12 text-primary mb-4" />
-                <h3 className="text-xl font-semibold mb-2 text-accent dark:text-white">{service.title}</h3>
-                <p className="text-gray-600 dark:text-gray-300 mb-4">{service.desc}</p>
-                <Link to={service.link} className="text-primary dark:text-red-400 font-medium hover:underline">En savoir plus</Link>
-              </motion.div>
-            ))}
+            <ServiceCard
+              icon={FileText}
+              title="Documents administratifs"
+              description="CIP, casier judiciaire, acte de naissance..."
+              image="/images/services/documents.jpg"
+              link="/services"
+              linkText="En savoir plus"
+            />
+            <ServiceCard
+              icon={Globe}
+              title="Visas & Voyages"
+              description="Tourisme, travail, études à l'étranger."
+              image="/images/services/visa.jpg"
+              link="/rdv"
+              linkText="Prendre rendez-vous"
+            />
+            <ServiceCard
+              icon={GraduationCap}
+              title="Formations & Coaching"
+              description="Développez vos compétences avec nos experts."
+              image="/images/services/etudes.jpg"
+              link="/formations"
+              linkText="Voir les formations"
+            />
           </div>
         </div>
       </section>
