@@ -34,7 +34,6 @@ export default function Dashboard() {
   const handleDelete = async (id) => {
     if (!confirm('Supprimer ce rendez-vous ?')) return;
     try {
-      // Nécessite une route DELETE /admin/appointments/:id dans le backend
       await api.delete(`/admin/appointments/${id}`);
       fetchData();
     } catch (err) {
@@ -43,26 +42,20 @@ export default function Dashboard() {
   };
 
   const handleEdit = (id) => {
-    // Redirection vers un éditeur de rendez-vous (à créer si besoin)
-    alert(`Modification du rendez-vous ${id} (fonctionnalité à venir)`);
+    alert(`Modification du rendez-vous ${id} (à venir)`);
   };
 
-  // Calcul du prochain rendez-vous (dans la même journée, après l'heure actuelle)
+  // Prochain rendez-vous dynamique (après l'heure actuelle)
   const getNextAppointment = () => {
     if (!todayAppointments.length) return null;
     const now = new Date();
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
-
-    // Les rendez-vous sont déjà triés par heure (croissant) grâce au backend
     const upcoming = todayAppointments.filter(apt => {
       const [h, m] = apt.appointment_time.split(':').map(Number);
-      const aptMinutes = h * 60 + m;
-      return aptMinutes >= currentMinutes;
+      return (h * 60 + m) >= currentMinutes;
     });
-
     return upcoming.length > 0 ? upcoming[0] : null;
   };
-
   const nextAppointment = getNextAppointment();
 
   return (
@@ -146,7 +139,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Rendez-vous du jour avec actions */}
+      {/* Rendez-vous du jour */}
       <div className="bg-white rounded-xl shadow p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">Rendez-vous aujourd'hui</h2>
