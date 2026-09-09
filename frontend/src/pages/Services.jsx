@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { FileText, Globe, GraduationCap, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
+import LocalBusinessSchema from '../components/common/StructuredData';
 
 const services = [
   {
@@ -34,6 +35,8 @@ export default function Services() {
         <title>Nos services | ZT-Voyage</title>
         <meta name="description" content="Découvrez nos services : visas, documents administratifs, études à l'étranger." />
       </Helmet>
+      <LocalBusinessSchema />
+
       <div className="text-center mb-16">
         <h1 className="text-4xl font-bold mb-4">Nos services</h1>
         <p className="text-xl text-gray-600">Des solutions complètes pour vos projets de mobilité</p>

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
-import { Calendar, Search } from 'lucide-react';
+import { Calendar, Search, ArrowRight } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import Reactions from '../components/blog/Reactions';
 
@@ -70,12 +70,23 @@ export default function Blog() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {articles.map(article => (
-            <motion.div whileHover={{ scale: 1.02 }} key={article._id || article.slug} className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden flex flex-col">
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              key={article._id || article.slug}
+              className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden flex flex-col"
+            >
               <Link to={`/blog/${article.slug}`}>
-                <img src={article.featured_image_url || '/images/placeholder.jpg'} alt={article.title} className="w-full h-48 object-cover" />
+                <img
+                  src={article.featured_image_url || '/images/placeholder.jpg'}
+                  alt={article.title}
+                  className="w-full h-48 object-cover"
+                  loading="lazy"
+                />
               </Link>
               <div className="p-4 flex flex-col flex-1">
-                <Link to={`/blog/${article.slug}`} className="font-semibold text-lg mb-2 dark:text-white hover:text-primary">{article.title}</Link>
+                <Link to={`/blog/${article.slug}`} className="font-semibold text-lg mb-2 dark:text-white hover:text-primary">
+                  {article.title}
+                </Link>
                 <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-2">
                   <Calendar className="w-3 h-3 mr-1" /> {new Date(article.createdAt).toLocaleDateString()}
                 </div>
@@ -84,7 +95,18 @@ export default function Blog() {
                     {article.content.replace(/<[^>]+>/g, '').substring(0, 100)}...
                   </p>
                 )}
-                <div className="mt-auto">
+
+                {/* Bouton Lire la suite */}
+                <div className="mt-auto flex justify-end">
+                  <Link
+                    to={`/blog/${article.slug}`}
+                    className="inline-flex items-center gap-1 text-primary dark:text-red-400 font-medium hover:underline text-sm"
+                  >
+                    Lire la suite <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
+
+                <div className="mt-3 border-t pt-3 dark:border-gray-700">
                   <Reactions articleId={article._id} />
                 </div>
               </div>

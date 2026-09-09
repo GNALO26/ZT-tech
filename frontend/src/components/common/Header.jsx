@@ -41,6 +41,7 @@ export default function Header() {
           <Link to="/" className="hover:text-primary dark:hover:text-red-400 transition">Accueil</Link>
           <Link to="/rdv" className="hover:text-primary dark:hover:text-red-400 transition">Rendez-vous</Link>
           <Link to="/blog" className="hover:text-primary dark:hover:text-red-400 transition">Blog</Link>
+          <Link to="/formations" className="hover:text-primary dark:hover:text-red-400 transition">Formations</Link>
           <Link to="/services" className="hover:text-primary dark:hover:text-red-400 transition">Services</Link>
           <Link to="/about" className="hover:text-primary dark:hover:text-red-400 transition">À propos</Link>
           <Link to="/contact" className="hover:text-primary dark:hover:text-red-400 transition">Contact</Link>
@@ -66,6 +67,7 @@ export default function Header() {
           <Link to="/" className="block py-1 dark:text-gray-200" onClick={() => setIsOpen(false)}>Accueil</Link>
           <Link to="/rdv" className="block py-1 dark:text-gray-200" onClick={() => setIsOpen(false)}>Rendez-vous</Link>
           <Link to="/blog" className="block py-1 dark:text-gray-200" onClick={() => setIsOpen(false)}>Blog</Link>
+          <Link to="/formations" className="block py-1 dark:text-gray-200" onClick={() => setIsOpen(false)}>Formations</Link>
           <Link to="/services" className="block py-1 dark:text-gray-200" onClick={() => setIsOpen(false)}>Services</Link>
           <Link to="/about" className="block py-1 dark:text-gray-200" onClick={() => setIsOpen(false)}>À propos</Link>
           <Link to="/contact" className="block py-1 dark:text-gray-200" onClick={() => setIsOpen(false)}>Contact</Link>

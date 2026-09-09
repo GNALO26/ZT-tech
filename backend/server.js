@@ -26,7 +26,7 @@ const app = express();
 
 app.set('trust proxy', 1);
 
-// Morgan pour les logs HTTP (dans le format 'combined')
+// Morgan pour les logs HTTP
 app.use(morgan('combined', { stream: { write: (message) => logger.info(message.trim()) } }));
 
 // Sécurité
@@ -64,13 +64,16 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Middleware de partage réseaux sociaux
 app.use(shareMiddleware);
 
-// Import des routes
+// Import des routes (une seule fois)
 const appointmentsRoute = require('./src/routes/appointments');
 const articlesRoute = require('./src/routes/articles');
 const adminRoute = require('./src/routes/admin');
 const contactRoute = require('./src/routes/contact');
 const chatRoute = require('./src/routes/chat');
 const reactionsRoute = require('./src/routes/reactions');
+const subscribersRoute = require('./src/routes/subscribers');
+const formationsRoute = require('./src/routes/formations');
+const vipRoute = require('./src/routes/vip');
 
 // Montage des routes
 app.use('/api/appointments', appointmentsRoute);
@@ -78,7 +81,10 @@ app.use('/api/articles', articlesRoute);
 app.use('/api/admin', adminRoute);
 app.use('/api/contact', contactRoute);
 app.use('/api/chat', chatRoute);
-app.use('/api/articles', reactionsRoute);
+app.use('/api/articles', reactionsRoute); // pour les réactions sous /api/articles
+app.use('/api/subscribers', subscribersRoute);
+app.use('/api/formations', formationsRoute);
+app.use('/api/vip', vipRoute);
 
 // Endpoint de santé
 app.get('/api/health', (req, res) => {
@@ -88,7 +94,7 @@ app.get('/api/health', (req, res) => {
 // Sitemap
 app.get('/sitemap.xml', require('./src/controllers/sitemapController'));
 
-// Sentry error handler
+// Sentry error handler (après les routes)
 if (process.env.SENTRY_DSN) {
   app.use(Sentry.Handlers.errorHandler());
 }
