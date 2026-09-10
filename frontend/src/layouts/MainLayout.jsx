@@ -4,7 +4,7 @@ import Footer from '../components/common/Footer';
 import Chatbot from '../components/common/Chatbot';
 import BackToTop from '../components/common/BackToTop';
 import NewsletterPopup from '../components/common/NewsletterPopup';
-import TopBanner from '../components/common/TopBanner';
+// import TopBanner from '../components/common/TopBanner';
 
 export default function MainLayout() {
   return (
