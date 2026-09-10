@@ -1,8 +1,5 @@
 const Formation = require('../models/Formation');
 
-// Utilitaire pour obtenir l'URL de base à partir de la requête
-const getBaseUrl = (req) => `${req.protocol}://${req.get('host')}`;
-
 // Liste publique avec filtre catégorie
 exports.list = async (req, res) => {
   try {
@@ -32,12 +29,9 @@ exports.getBySlug = async (req, res) => {
 // Créer une formation (admin)
 exports.create = async (req, res) => {
   try {
-    const baseUrl = getBaseUrl(req);
     const data = {
       ...req.body,
-      image_url: req.file
-        ? `${baseUrl}/uploads/formations/${req.file.filename}`
-        : req.body.image_url || '/images/placeholder.jpg'
+      image_url: req.file ? req.file.path : req.body.image_url || '/images/placeholder.jpg',
     };
     const formation = await Formation.create(data);
     res.status(201).json(formation);
@@ -51,12 +45,9 @@ exports.create = async (req, res) => {
 // Modifier une formation (admin)
 exports.update = async (req, res) => {
   try {
-    const baseUrl = getBaseUrl(req);
     const updateData = {
       ...req.body,
-      image_url: req.file
-        ? `${baseUrl}/uploads/formations/${req.file.filename}`
-        : req.body.image_url
+      image_url: req.file ? req.file.path : req.body.image_url,
     };
     const formation = await Formation.findByIdAndUpdate(req.params.id, updateData, { new: true });
     if (!formation) return res.status(404).json({ message: 'Formation non trouvée.' });

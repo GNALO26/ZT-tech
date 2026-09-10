@@ -6,9 +6,6 @@ const PDFDocument = require('pdfkit');
 const path = require('path');
 const fs = require('fs');
 
-// Utilitaire pour construire une URL absolue à partir de la requête
-const getBaseUrl = (req) => `${req.protocol}://${req.get('host')}`;
-
 // --------------- AUTH ---------------
 exports.login = async (req, res) => {
   const { email, password } = req.body;
@@ -48,12 +45,9 @@ exports.getAllArticles = async (req, res) => {
 
 exports.createArticle = async (req, res) => {
   try {
-    const baseUrl = getBaseUrl(req);
     const articleData = {
       ...req.body,
-      featured_image_url: req.file
-        ? `${baseUrl}/uploads/articles/${req.file.filename}`
-        : req.body.featuredImageUrl || '',
+      featured_image_url: req.file ? req.file.path : req.body.featuredImageUrl || '',
     };
     const article = await Article.create(articleData);
     res.status(201).json(article);
@@ -66,12 +60,9 @@ exports.createArticle = async (req, res) => {
 
 exports.updateArticle = async (req, res) => {
   try {
-    const baseUrl = getBaseUrl(req);
     const updateData = {
       ...req.body,
-      featured_image_url: req.file
-        ? `${baseUrl}/uploads/articles/${req.file.filename}`
-        : req.body.featuredImageUrl,
+      featured_image_url: req.file ? req.file.path : req.body.featuredImageUrl,
     };
     const article = await Article.findByIdAndUpdate(req.params.id, updateData, { new: true });
     if (!article) return res.status(404).json({ message: 'Article non trouvé.' });
@@ -168,7 +159,7 @@ exports.getStats = async (req, res) => {
   }
 };
 
-// --------------- EXPORT PDF (tableau amélioré) ---------------
+// --------------- EXPORT PDF ---------------
 exports.exportAppointmentsPDF = async (req, res) => {
   try {
     const { start, end, visa_type, destination } = req.query;

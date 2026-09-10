@@ -1,36 +1,30 @@
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
-// Créer les dossiers nécessaires
-const dirs = ['uploads/articles', 'uploads/formations'];
-dirs.forEach(dir => {
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    // Choisir le dossier selon le champ du fichier
-    if (file.fieldname === 'featured_image') {
-      cb(null, 'uploads/articles');
-    } else if (file.fieldname === 'image') {
-      cb(null, 'uploads/formations');
-    } else {
-      cb(new Error('Champ de fichier inattendu'), false);
-    }
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: async (req, file) => {
+    let folder = 'zt-voyage';
+    if (file.fieldname === 'featured_image') folder = 'zt-voyage/articles';
+    else if (file.fieldname === 'image') folder = 'zt-voyage/formations';
+    return {
+      folder,
+      allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
+      transformation: [{ width: 1200, crop: 'limit' }],
+    };
   },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  }
 });
 
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith('image/')) {
-    cb(null, true);
-  } else {
-    cb(new Error('Seules les images sont autorisées'), false);
-  }
+  if (file.mimetype.startsWith('image/')) cb(null, true);
+  else cb(new Error('Seules les images sont autorisées'), false);
 };
 
 const upload = multer({ storage, fileFilter });
