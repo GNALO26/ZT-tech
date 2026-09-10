@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Save, ArrowLeft, Upload, X, EyeOff, Eye } from 'lucide-react';
 import api from '../../services/api';
-import RichTextEditor from '../../components/common/RichTextEditor';
 import { Helmet } from 'react-helmet-async';
 
 export default function ArticleEditor() {
@@ -105,28 +104,39 @@ export default function ArticleEditor() {
       <form onSubmit={handleSubmit} className="space-y-4 bg-white dark:bg-gray-800 rounded-xl shadow p-6">
         <div>
           <label className="block text-sm font-medium mb-1 dark:text-gray-200">Titre</label>
-          <input type="text" className="w-full border rounded-lg p-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value={form.title} onChange={e => setForm({...form, title: e.target.value})} required />
+          <input
+            type="text"
+            className="w-full border rounded-lg p-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            value={form.title}
+            onChange={e => setForm({ ...form, title: e.target.value })}
+            required
+          />
         </div>
         <div>
           <label className="block text-sm font-medium mb-1 dark:text-gray-200">Slug</label>
-          <input type="text" className="w-full border rounded-lg p-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value={form.slug} onChange={e => setForm({...form, slug: e.target.value})} required />
+          <input
+            type="text"
+            className="w-full border rounded-lg p-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            value={form.slug}
+            onChange={e => setForm({ ...form, slug: e.target.value })}
+            required
+          />
         </div>
 
-        <div className="flex items-center gap-2">
-          <button type="button" onClick={() => setShowEditor(!showEditor)} className="text-sm text-primary hover:underline flex items-center gap-1">
-            {showEditor ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            {showEditor ? 'Masquer l\'éditeur' : 'Ajouter du contenu texte'}
-          </button>
-          {!showEditor && <span className="text-xs text-gray-500 dark:text-gray-400">(Article avec image uniquement)</span>}
+        {/* Contenu HTML en textarea (plus simple pour coller du HTML) */}
+        <div>
+          <label className="block text-sm font-medium mb-1 dark:text-gray-200">Contenu HTML</label>
+          <textarea
+            value={form.content}
+            onChange={(e) => setForm({ ...form, content: e.target.value })}
+            rows="12"
+            className="w-full border rounded-lg p-3 font-mono text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            placeholder="Collez votre contenu HTML ici..."
+          />
+          <p className="text-xs text-gray-500 mt-1">Utilisez des balises HTML (p, strong, ul, etc.)</p>
         </div>
 
-        {showEditor && (
-          <div>
-            <label className="block text-sm font-medium mb-1 dark:text-gray-200">Contenu</label>
-            <RichTextEditor value={form.content} onChange={(val) => setForm({...form, content: val})} />
-          </div>
-        )}
-
+        {/* Image à la une */}
         <div>
           <label className="block text-sm font-medium mb-1 dark:text-gray-200">Image à la une</label>
           <div className="flex items-start gap-4">
@@ -147,16 +157,28 @@ export default function ArticleEditor() {
           </div>
         </div>
 
+        {/* SEO */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium mb-1 dark:text-gray-200">Meta titre (SEO)</label>
-            <input type="text" className="w-full border rounded-lg p-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value={form.metaTitle} onChange={e => setForm({...form, metaTitle: e.target.value})} />
+            <input
+              type="text"
+              className="w-full border rounded-lg p-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              value={form.metaTitle}
+              onChange={e => setForm({ ...form, metaTitle: e.target.value })}
+            />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1 dark:text-gray-200">Meta description</label>
-            <input type="text" className="w-full border rounded-lg p-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white" value={form.metaDescription} onChange={e => setForm({...form, metaDescription: e.target.value})} />
+            <input
+              type="text"
+              className="w-full border rounded-lg p-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              value={form.metaDescription}
+              onChange={e => setForm({ ...form, metaDescription: e.target.value })}
+            />
           </div>
         </div>
+
         {error && <p className="text-red-500">{error}</p>}
         <button type="submit" disabled={loading} className="bg-primary text-white px-6 py-3 rounded-lg hover:bg-red-700 transition flex items-center gap-2 disabled:opacity-50">
           <Save className="w-4 h-4" />

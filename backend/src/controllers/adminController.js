@@ -1,5 +1,3 @@
-// backend/src/controllers/adminController.js
-
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Article = require('../models/Article');
@@ -7,6 +5,9 @@ const Appointment = require('../models/Appointment');
 const PDFDocument = require('pdfkit');
 const path = require('path');
 const fs = require('fs');
+
+// Utilitaire pour construire une URL absolue à partir de la requête
+const getBaseUrl = (req) => `${req.protocol}://${req.get('host')}`;
 
 // --------------- AUTH ---------------
 exports.login = async (req, res) => {
@@ -47,9 +48,12 @@ exports.getAllArticles = async (req, res) => {
 
 exports.createArticle = async (req, res) => {
   try {
+    const baseUrl = getBaseUrl(req);
     const articleData = {
       ...req.body,
-      featured_image_url: req.file ? `/uploads/articles/${req.file.filename}` : req.body.featuredImageUrl || ''
+      featured_image_url: req.file
+        ? `${baseUrl}/uploads/articles/${req.file.filename}`
+        : req.body.featuredImageUrl || '',
     };
     const article = await Article.create(articleData);
     res.status(201).json(article);
@@ -62,9 +66,12 @@ exports.createArticle = async (req, res) => {
 
 exports.updateArticle = async (req, res) => {
   try {
+    const baseUrl = getBaseUrl(req);
     const updateData = {
       ...req.body,
-      featured_image_url: req.file ? `/uploads/articles/${req.file.filename}` : req.body.featuredImageUrl
+      featured_image_url: req.file
+        ? `${baseUrl}/uploads/articles/${req.file.filename}`
+        : req.body.featuredImageUrl,
     };
     const article = await Article.findByIdAndUpdate(req.params.id, updateData, { new: true });
     if (!article) return res.status(404).json({ message: 'Article non trouvé.' });
@@ -186,7 +193,6 @@ exports.exportAppointmentsPDF = async (req, res) => {
       res.send(pdfBuffer);
     });
 
-    // Logo
     const logoPath = path.join(__dirname, '../assets/logo.png');
     try {
       if (fs.existsSync(logoPath)) {
