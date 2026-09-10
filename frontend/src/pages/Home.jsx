@@ -79,11 +79,25 @@ export default function Home() {
               <DestinationCard key={i} {...dest} />
             ))}
           </div>
-          <div className="text-center mt-8">
-            <Link to="/blog" className="inline-flex items-center gap-2 text-primary dark:text-red-400 font-semibold hover:underline">
-              Voir plus de destinations <ChevronRight className="w-4 h-4" />
-            </Link>
-          </div>
+          <motion.div
+  className="text-center mt-8"
+  animate={{
+    scale: [1, 1.05, 1],
+    opacity: [1, 0.7, 1],
+  }}
+  transition={{
+    duration: 1.5,
+    repeat: Infinity,
+    ease: 'easeInOut',
+  }}
+>
+  <Link
+    to="/blog"
+    className="inline-flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-full font-semibold shadow-lg hover:bg-red-700 transition"
+  >
+    Voir plus de destinations <ChevronRight className="w-4 h-4" />
+  </Link>
+</motion.div>
         </div>
       </section>
 

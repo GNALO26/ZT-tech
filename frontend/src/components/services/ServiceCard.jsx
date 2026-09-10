@@ -9,7 +9,7 @@ export default function ServiceCard({ icon: Icon, title, description, image, lin
       transition={{ type: 'spring', stiffness: 300 }}
       className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 flex flex-col"
     >
-      <div className="relative h-64 overflow-hidden">
+      <div className="relative h-80 md:h-96 overflow-hidden">
         <img
           src={image}
           alt={title}

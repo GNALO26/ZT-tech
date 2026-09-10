@@ -6,7 +6,7 @@ export default function FormationCard({ title, image, category, duration, price 
       whileHover={{ y: -5, scale: 1.02 }}
       className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow flex flex-col"
     >
-      <div className="relative h-64 overflow-hidden">
+      <div className="relative h-64 md:h-72 overflow-hidden">
         <img
           src={image}
           alt={title}
@@ -15,8 +15,8 @@ export default function FormationCard({ title, image, category, duration, price 
         />
         <div className="absolute top-4 left-4">
           <span className={`inline-block text-xs font-semibold px-3 py-1 rounded-full ${
-            category === 'coaching' 
-              ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' 
+            category === 'coaching'
+              ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
               : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
           }`}>
             {category === 'coaching' ? 'Coaching' : 'Formation'}
