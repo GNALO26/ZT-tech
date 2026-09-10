@@ -1,53 +1,36 @@
-const { google } = require('googleapis');
+const nodemailer = require('nodemailer');
 
-// Configuration OAuth2
-const oauth2Client = new google.auth.OAuth2(
-  process.env.GMAIL_CLIENT_ID,
-  process.env.GMAIL_CLIENT_SECRET,
-  'urn:ietf:wg:oauth:2.0:oob'
-);
-
-oauth2Client.setCredentials({
-  refresh_token: process.env.GMAIL_REFRESH_TOKEN,
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD,
+  },
 });
 
 /**
- * Envoie un email avec pièce jointe PDF via l'API Gmail REST.
+ * Envoie un email avec pièce jointe PDF.
+ * @param {string} to - destinataire
+ * @param {string} subject - sujet
+ * @param {string} content - contenu (texte brut OU HTML)
+ * @param {Buffer} pdfBuffer - contenu du PDF (optionnel)
  */
-exports.sendConfirmationEmail = async (to, subject, text, pdfBuffer) => {
-  const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+exports.sendConfirmationEmail = async (to, subject, content, pdfBuffer) => {
+  const isHtml = content && content.trim().startsWith('<!DOCTYPE') || content.trim().startsWith('<html');
 
-  const boundary = '===============ztboundary';
-  const messageParts = [
-    `From: ZT Technologies <${process.env.GMAIL_USER}>`,
-    `To: ${to}`,
-    `Subject: =?UTF-8?B?${Buffer.from(subject).toString('base64')}?=`,
-    'MIME-Version: 1.0',
-    `Content-Type: multipart/mixed; boundary="${boundary}"`,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/plain; charset=UTF-8',
-    'Content-Transfer-Encoding: 7bit',
-    '',
-    text,
-    '',
-    `--${boundary}`,
-    'Content-Type: application/pdf; name="confirmation-rdv.pdf"',
-    'Content-Transfer-Encoding: base64',
-    'Content-Disposition: attachment; filename="confirmation-rdv.pdf"',
-    '',
-    pdfBuffer.toString('base64'),
-    `--${boundary}--`,
-  ];
+  const mailOptions = {
+    from: `"ZT-Voyage" <${process.env.GMAIL_USER}>`,
+    to,
+    subject,
+    ...(isHtml ? { html: content } : { text: content }),
+    attachments: pdfBuffer ? [
+      {
+        filename: 'confirmation-rdv.pdf',
+        content: pdfBuffer,
+        contentType: 'application/pdf',
+      },
+    ] : [],
+  };
 
-  const raw = Buffer.from(messageParts.join('\r\n'))
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-
-  await gmail.users.messages.send({
-    userId: 'me',
-    requestBody: { raw },
-  });
+  return transporter.sendMail(mailOptions);
 };
