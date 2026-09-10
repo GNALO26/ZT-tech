@@ -1,17 +1,21 @@
 import { useEffect, useState, useCallback } from 'react';
 
-export default function VideoBackground({ videoSrcs, posterSrc, children }) {
+/**
+ * @param {string[]} videoSrcs - Tableau de chemins vidéo
+ * @param {string} posterSrc - Image de fallback
+ * @param {string} height - Hauteur de la section (ex: '50vh', '60vh')
+ * @param {React.ReactNode} children
+ */
+export default function VideoBackground({ videoSrcs, posterSrc, height = '70vh', children }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [nextIndex, setNextIndex] = useState(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Détection mobile
   useEffect(() => {
     setIsMobile(/Mobi|Android/i.test(navigator.userAgent));
   }, []);
 
-  // Passer à une vidéo aléatoire (différente de l'actuelle)
   const switchVideo = useCallback(() => {
     if (!videoSrcs || videoSrcs.length <= 1) return;
     let newIndex;
@@ -22,7 +26,6 @@ export default function VideoBackground({ videoSrcs, posterSrc, children }) {
     setIsTransitioning(true);
   }, [videoSrcs, currentIndex]);
 
-  // Fin de la transition
   const onTransitionEnd = () => {
     if (nextIndex !== null) {
       setCurrentIndex(nextIndex);
@@ -31,7 +34,6 @@ export default function VideoBackground({ videoSrcs, posterSrc, children }) {
     }
   };
 
-  // Changement automatique toutes les 8 secondes
   useEffect(() => {
     if (isMobile || !videoSrcs || videoSrcs.length <= 1) return;
     const interval = setInterval(switchVideo, 8000);
@@ -41,10 +43,12 @@ export default function VideoBackground({ videoSrcs, posterSrc, children }) {
   const currentVideo = videoSrcs?.[currentIndex] || videoSrcs?.[0];
   const nextVideo = nextIndex !== null ? videoSrcs[nextIndex] : null;
 
-  // Sur mobile ou absence de vidéo : image fixe
+  // La hauteur est appliquée via style inline pour plus de flexibilité
+  const sectionStyle = { height };
+
   if (isMobile || !currentVideo) {
     return (
-      <div className="relative w-full h-screen overflow-hidden">
+      <div className="relative w-full overflow-hidden" style={sectionStyle}>
         <img src={posterSrc} alt="Fond" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-b from-primary/50 to-accent/70" />
         <div className="relative z-10 flex items-center justify-center h-full px-4">{children}</div>
@@ -53,8 +57,7 @@ export default function VideoBackground({ videoSrcs, posterSrc, children }) {
   }
 
   return (
-    <div className="relative w-full h-screen overflow-hidden">
-      {/* Vidéo principale */}
+    <div className="relative w-full overflow-hidden" style={sectionStyle}>
       <video
         key={currentIndex}
         autoPlay
@@ -67,7 +70,6 @@ export default function VideoBackground({ videoSrcs, posterSrc, children }) {
         <source src={currentVideo} type="video/mp4" />
       </video>
 
-      {/* Vidéo suivante (fondu entrant) */}
       {nextVideo && (
         <video
           autoPlay
@@ -81,7 +83,6 @@ export default function VideoBackground({ videoSrcs, posterSrc, children }) {
         </video>
       )}
 
-      {/* Overlay dégradé rouge → anthracite */}
       <div className="absolute inset-0 bg-gradient-to-b from-primary/50 to-accent/70" />
       <div className="relative z-10 flex items-center justify-center h-full px-4">{children}</div>
     </div>

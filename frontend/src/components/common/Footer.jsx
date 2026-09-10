@@ -66,7 +66,7 @@ export default function Footer() {
         <div>
           <h4 className="font-semibold mb-3 text-white">Contact</h4>
           <address className="not-italic space-y-2 text-gray-400 dark:text-gray-300">
-            <p className="flex items-center gap-2"><MapPin className="w-4 h-4" /> Cotonou, Quartier Zongo</p>
+            <p className="flex items-center gap-2"><MapPin className="w-4 h-4" /> Cotonou, Quartier Djidjè</p>
             <p className="flex items-center gap-2"><Phone className="w-4 h-4" /> +229 01 52 43 17 17</p>
             <p className="flex items-center gap-2">
               <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
