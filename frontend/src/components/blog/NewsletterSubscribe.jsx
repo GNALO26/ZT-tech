@@ -11,6 +11,16 @@ export default function NewsletterSubscribe() {
     setStatus('loading');
     try {
       await subscribeNewsletter(email);
+
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'form_submit', {
+          form_name: 'newsletter_form',
+          event_category: 'conversion',
+          event_label: 'Abonnement newsletter',
+          value: 1,
+        });
+      }
+
       setStatus('success');
       setEmail('');
     } catch (err) {

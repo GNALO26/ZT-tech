@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import ScrollToTop from './components/common/ScrollToTop';
+import AnalyticsTracker from './components/common/AnalyticsTracker';
 import MainLayout from './layouts/MainLayout';
 import AdminLayout from './layouts/AdminLayout';
 import Home from './pages/Home';
@@ -10,6 +11,7 @@ import BlogArticle from './pages/BlogArticle';
 import Contact from './pages/Contact';
 import About from './pages/About';
 import Services from './pages/Services';
+import LocationVoiture from './pages/LocationVoiture';
 import Formations from './pages/Formations';
 import Coaching from './pages/Coaching';
 import Vip from './pages/Vip';
@@ -34,6 +36,7 @@ export default function App() {
       <AuthProvider>
         <BrowserRouter>
           <ScrollToTop />
+          <AnalyticsTracker />
           <Routes>
             {/* Public */}
             <Route element={<MainLayout />}>
@@ -44,6 +47,7 @@ export default function App() {
               <Route path="/contact" element={<Contact />} />
               <Route path="/about" element={<About />} />
               <Route path="/services" element={<Services />} />
+              <Route path="/location-voiture" element={<LocationVoiture />} />
               <Route path="/formations" element={<Formations />} />
               <Route path="/coaching" element={<Coaching />} />
               <Route path="/vip" element={<Vip />} />

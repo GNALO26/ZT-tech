@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { z } from 'zod';
 import {
   ChevronLeft, ChevronRight, Check, Loader2, AlertTriangle,
-  User, Mail, Phone, MapPin, Globe, FileText, Calendar, Clock, Plane,
-  GraduationCap, Briefcase
+  User, Mail, Phone, MapPin, Globe, FileText, Calendar, Clock,
+  Briefcase
 } from 'lucide-react';
 import api from '../../services/api';
 import SuccessPopup from './SuccessPopup';
@@ -136,6 +136,17 @@ export default function AppointmentForm() {
     setIsSubmitting(true);
     try {
       await api.post('/appointments', { ...formData, notificationMethod: 'email' });
+
+      // Événement GA4
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'form_submit', {
+          form_name: 'appointment_form',
+          event_category: 'conversion',
+          event_label: 'Prise de rendez-vous',
+          value: 1,
+        });
+      }
+
       setSuccess(true);
       setTimeout(() => setShowSuccessPopup(true), 600);
     } catch (err) {
@@ -147,6 +158,12 @@ export default function AppointmentForm() {
 
   const handleNoPassport = () => {
     const num = import.meta.env.VITE_WHATSAPP_NUMBER || '22952431717';
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', 'whatsapp_click', {
+        event_category: 'contact',
+        event_label: 'Pas de passeport',
+      });
+    }
     window.open(`https://wa.me/${num}?text=${encodeURIComponent("Bonjour, je souhaite prendre rendez-vous mais je n'ai pas de passeport.")}`, '_blank');
   };
 
@@ -179,7 +196,6 @@ export default function AppointmentForm() {
           </motion.div>
         ) : (
           <>
-            {/* Barre de progression */}
             <div className="mb-10">
               <div className="flex justify-between mb-3">
                 {steps.map((s) => {
@@ -213,7 +229,6 @@ export default function AppointmentForm() {
             </div>
 
             <AnimatePresence mode="wait">
-              {/* Étape 1 */}
               {step === 1 && (
                 <motion.div key="s1" initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 30 }}>
                   <div className="text-center mb-8">
@@ -242,7 +257,6 @@ export default function AppointmentForm() {
                 </motion.div>
               )}
 
-              {/* Étape 2 */}
               {step === 2 && (
                 <motion.div key="s2" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }}>
                   <div className="text-center mb-8">
@@ -282,7 +296,6 @@ export default function AppointmentForm() {
                 </motion.div>
               )}
 
-              {/* Étape 3 */}
               {step === 3 && (
                 <motion.div key="s3" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }}>
                   <div className="text-center mb-8">
@@ -368,7 +381,6 @@ export default function AppointmentForm() {
         )}
       </div>
 
-      {/* Popup de succès avec suggestions */}
       <SuccessPopup isOpen={showSuccessPopup} onClose={() => setShowSuccessPopup(false)} />
     </>
   );

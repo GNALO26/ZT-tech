@@ -43,10 +43,22 @@ export default function Chatbot() {
 
   const handleOption = (type) => {
     if (type === 'rdv') {
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'chatbot_click', {
+          event_category: 'engagement',
+          event_label: 'Clic RDV chatbot',
+        });
+      }
       window.location.href = '/rdv';
       return;
     }
     if (type === 'whatsapp') {
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'whatsapp_click', {
+          event_category: 'contact',
+          event_label: 'WhatsApp depuis chatbot',
+        });
+      }
       window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Bonjour ZT-Voyage, je souhaite discuter avec un conseiller.')}`, '_blank');
       return;
     }

@@ -6,29 +6,33 @@ import { subscribeNewsletter } from '../../services/newsletterService';
 export default function NewsletterPopup() {
   const [isVisible, setIsVisible] = useState(false);
   const [email, setEmail] = useState('');
-  const [status, setStatus] = useState(null); // 'loading', 'success', 'error'
+  const [status, setStatus] = useState(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      // Ne pas afficher si déjà fermé ou si déjà abonné (localStorage)
       const hasSubscribed = localStorage.getItem('newsletter_subscribed');
-      if (!hasSubscribed) {
-        setIsVisible(true);
-      }
-    }, 60000); // 60 secondes
-
+      if (!hasSubscribed) setIsVisible(true);
+    }, 60000);
     return () => clearTimeout(timer);
   }, []);
 
-  const handleClose = () => {
-    setIsVisible(false);
-  };
+  const handleClose = () => setIsVisible(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus('loading');
     try {
       await subscribeNewsletter(email);
+
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'form_submit', {
+          form_name: 'newsletter_popup',
+          event_category: 'conversion',
+          event_label: 'Abonnement newsletter (popup)',
+          value: 1,
+        });
+      }
+
       localStorage.setItem('newsletter_subscribed', 'true');
       setStatus('success');
       setTimeout(() => setIsVisible(false), 2000);
@@ -64,9 +68,7 @@ export default function NewsletterPopup() {
               <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Send className="w-8 h-8 text-primary" />
               </div>
-              <h2 className="text-2xl font-bold text-accent dark:text-white mb-2">
-                Restez informé !
-              </h2>
+              <h2 className="text-2xl font-bold text-accent dark:text-white mb-2">Restez informé !</h2>
               <p className="text-gray-600 dark:text-gray-300">
                 Abonnez-vous à notre newsletter pour recevoir nos actualités, offres et conseils exclusifs.
               </p>
