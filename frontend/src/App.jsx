@@ -11,7 +11,7 @@ import BlogArticle from './pages/BlogArticle';
 import Contact from './pages/Contact';
 import About from './pages/About';
 import Services from './pages/Services';
-import LocationVoiture from './pages/LocationVoiture';
+// import LocationVoiture from './pages/LocationVoiture';
 import Formations from './pages/Formations';
 import Coaching from './pages/Coaching';
 import Vip from './pages/Vip';
@@ -47,7 +47,7 @@ export default function App() {
               <Route path="/contact" element={<Contact />} />
               <Route path="/about" element={<About />} />
               <Route path="/services" element={<Services />} />
-              <Route path="/location-voiture" element={<LocationVoiture />} />
+              {/* <Route path="/location-voiture" element={<LocationVoiture />} /> */}
               <Route path="/formations" element={<Formations />} />
               <Route path="/coaching" element={<Coaching />} />
               <Route path="/vip" element={<Vip />} />
