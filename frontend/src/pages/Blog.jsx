@@ -6,6 +6,9 @@ import { Calendar, Search, ArrowRight } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import Reactions from '../components/blog/Reactions';
 
+// URL de base pour les images uploadées sur Render
+const BACKEND_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://zt-tech.onrender.com';
+
 export default function Blog() {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -69,46 +72,56 @@ export default function Blog() {
         <p className="dark:text-gray-300">Aucun article trouvé.</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {articles.map(article => (
-            <motion.div
-              whileHover={{ y: -5 }}
-              key={article._id || article.slug}
-              className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden flex flex-col"
-            >
-              <Link to={`/blog/${article.slug}`}>
-                <img
-                  src={article.featured_image_url || '/images/placeholder.jpg'}
-                  alt={article.title}
-                  className="w-full h-56 object-cover"
-                  loading="lazy"
-                />
-              </Link>
-              <div className="p-4 flex flex-col flex-1">
-                <Link to={`/blog/${article.slug}`} className="font-semibold text-lg mb-2 dark:text-white hover:text-primary">
-                  {article.title}
+          {articles.map(article => {
+            const imageUrl = article.featured_image_url
+              ? article.featured_image_url.startsWith('http')
+                ? article.featured_image_url
+                : `${BACKEND_URL}${article.featured_image_url}`
+              : '/images/placeholder.jpg';
+
+            return (
+              <motion.div
+                whileHover={{ y: -5 }}
+                key={article._id || article.slug}
+                className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden flex flex-col"
+              >
+                <Link to={`/blog/${article.slug}`}>
+                  <img
+                    src={imageUrl}
+                    alt={article.title}
+                    className="w-full h-56 object-cover"
+                    loading="lazy"
+                  />
                 </Link>
-                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-2">
-                  <Calendar className="w-3 h-3 mr-1" /> {new Date(article.createdAt).toLocaleDateString()}
-                </div>
-                {article.content && (
-                  <p className="text-gray-600 dark:text-gray-300 text-sm line-clamp-2 mb-3">
-                    {article.content.replace(/<[^>]+>/g, '').substring(0, 100)}...
-                  </p>
-                )}
-                <div className="mt-auto flex justify-end">
-                  <Link
-                    to={`/blog/${article.slug}`}
-                    className="inline-flex items-center gap-1 text-primary dark:text-red-400 font-medium hover:underline text-sm"
-                  >
-                    Lire la suite <ArrowRight className="w-4 h-4" />
+                <div className="p-4 flex flex-col flex-1">
+                  <Link to={`/blog/${article.slug}`} className="font-semibold text-lg mb-2 dark:text-white hover:text-primary">
+                    {article.title}
                   </Link>
+                  <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-2">
+                    <Calendar className="w-3 h-3 mr-1" /> {new Date(article.createdAt).toLocaleDateString()}
+                  </div>
+                  {article.content && (
+                    <p className="text-gray-600 dark:text-gray-300 text-sm line-clamp-2 mb-3">
+                      {article.content.replace(/<[^>]+>/g, '').substring(0, 100)}...
+                    </p>
+                  )}
+
+                  <div className="mt-auto flex justify-end">
+                    <Link
+                      to={`/blog/${article.slug}`}
+                      className="inline-flex items-center gap-1 text-primary dark:text-red-400 font-medium hover:underline text-sm"
+                    >
+                      Lire la suite <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  </div>
+
+                  <div className="mt-3 border-t pt-3 dark:border-gray-700">
+                    <Reactions articleId={article._id} />
+                  </div>
                 </div>
-                <div className="mt-3 border-t pt-3 dark:border-gray-700">
-                  <Reactions articleId={article._id} />
-                </div>
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            );
+          })}
         </div>
       )}
     </motion.div>
