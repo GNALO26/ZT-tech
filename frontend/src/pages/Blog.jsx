@@ -37,9 +37,10 @@ export default function Blog() {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="max-w-7xl mx-auto px-4 py-10">
       <Helmet>
-        <title>Blog | ZT-Voyage</title>
-        <meta name="description" content="Actualités et conseils sur les visas, études et voyages." />
-      </Helmet>
+  <title>Blog — Actualités visas, voyages et études | ZT-Voyage</title>
+  <meta name="description" content="Conseils pratiques sur les visas, études à l'étranger, démarches administratives et voyages depuis le Bénin." />
+  <link rel="canonical" href="https://zt-voyage.com/blog" />
+</Helmet>
 
       <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
         <h1 className="text-3xl font-bold dark:text-white">Blog</h1>

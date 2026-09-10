@@ -38,9 +38,10 @@ export default function Contact() {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-7xl mx-auto px-4 py-10">
       <Helmet>
-        <title>Contact | ZT-Voyage</title>
-        <meta name="description" content="Contactez ZT-Voyage pour vos besoins de visa, études et documents." />
-      </Helmet>
+  <title>Contact — Agence ZT-Voyage Cotonou | WhatsApp +229 52 43 17 17</title>
+  <meta name="description" content="Contactez ZT-Voyage à Cotonou : téléphone, WhatsApp, email, adresse. Réponse rapide pour vos demandes de visa, documents et voyages." />
+  <link rel="canonical" href="https://zt-voyage.com/contact" />
+</Helmet>
 
       {/* En-tête */}
       <div className="text-center mb-12">

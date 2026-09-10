@@ -49,9 +49,10 @@ export default function Services() {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-screen">
       <Helmet>
-        <title>Nos services | ZT-Voyage</title>
-        <meta name="description" content="Découvrez nos services : visas, documents administratifs, études à l'étranger, location de voiture, avec un accompagnement sur mesure." />
-      </Helmet>
+  <title>Nos services — Visa, documents, études, location | ZT-Voyage</title>
+  <meta name="description" content="Découvrez nos services : obtention de visa, documents administratifs, études  et travail à l'étranger et location de voiture à Cotonou. Accompagnement personnalisé." />
+  <link rel="canonical" href="https://zt-voyage.com/services" />
+</Helmet>
 
       {/* Hero */}
       <section className="relative py-20 bg-gradient-to-r from-primary to-red-800 text-white overflow-hidden">

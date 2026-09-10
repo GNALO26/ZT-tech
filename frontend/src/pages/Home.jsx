@@ -21,10 +21,11 @@ export default function Home() {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
       <Helmet>
-        <title>ZT-Voyage – Visas, études, voyages, formations au Bénin</title>
-        <meta name="description" content="Agence de voyages, visa, études et formations à Cotonou. Prenez rendez-vous, explorez nos destinations et formez-vous." />
-        <link rel="canonical" href="https://zt-voyage.com" />
-      </Helmet>
+  <title>ZT-Voyage — Visas, études, travail, visites, location de voiture</title>
+  <meta name="description" content="Agence de voyages à Cotonou : visas pour la France, le Canada, la Chine, documents administratifs, formations et location de voiture. Prenez rendez-vous." />
+  <meta name="keywords" content="visa France Cotonou, visa Canada Bénin, agence de voyage Cotonou, location voiture Bénin, formation Bénin" />
+  <link rel="canonical" href="https://zt-voyage.com" />
+</Helmet>
       <LocalBusinessSchema />
 
       {/* Hero avec vidéo */}
