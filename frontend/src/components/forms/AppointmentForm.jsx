@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { z } from 'zod';
-import { ChevronLeft, ChevronRight, Check, Loader2, AlertTriangle } from 'lucide-react';
+import {
+  ChevronLeft, ChevronRight, Check, Loader2, AlertTriangle,
+  User, Mail, Phone, MapPin, Globe, FileText, Calendar, Clock, Plane,
+  GraduationCap, Briefcase
+} from 'lucide-react';
 import api from '../../services/api';
+import SuccessPopup from './SuccessPopup';
 
-// Schéma Zod (identique au backend)
 const appointmentSchema = z.object({
   hasPassport: z.boolean().refine(v => v === true, 'Le passeport est obligatoire.'),
   firstName: z.string().min(2, 'Prénom requis'),
@@ -15,8 +19,7 @@ const appointmentSchema = z.object({
   visaType: z.enum(['VISITEUR', 'TRAVAIL', 'ETUDE'], { errorMap: () => ({ message: 'Type de visa requis' }) }),
   destinationCountry: z.string().min(2, 'Pays requis'),
   appointmentDate: z.string().refine(v => !isNaN(Date.parse(v)), 'Date invalide'),
-  appointmentTime: z.string().regex(/^(09|1[0-7]):(00|30)$|^18:00$/, 'Créneau entre 9h et 17h30'),
-  notificationMethod: z.enum(['email', 'whatsapp']),
+  appointmentTime: z.string().regex(/^(09|1[0-7]):(00|30)$|^18:00$/, 'Créneau invalide'),
 });
 
 const countriesMatrix = {
@@ -30,8 +33,7 @@ const getAllTimeSlots = () => {
   for (let h = 9; h <= 18; h++) {
     for (let m = 0; m < 60; m += 30) {
       if (h === 18 && m > 0) break;
-      const time = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-      slots.push(time);
+      slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
     }
   }
   return slots;
@@ -45,14 +47,14 @@ const getAvailableSlots = (selectedDate) => {
   if (day === 6) {
     return allSlots.filter(slot => {
       const [h, m] = slot.split(':').map(Number);
-      const startMinutes = h * 60 + m;
-      return startMinutes >= 9 * 60 && startMinutes <= 12 * 60 + 30;
+      const total = h * 60 + m;
+      return total >= 9 * 60 && total <= 12 * 60 + 30;
     });
   }
   return allSlots.filter(slot => {
     const [h, m] = slot.split(':').map(Number);
-    const startMinutes = h * 60 + m;
-    return startMinutes >= 9 * 60 && startMinutes <= 17 * 60 + 30;
+    const total = h * 60 + m;
+    return total >= 9 * 60 && total <= 17 * 60 + 30;
   });
 };
 
@@ -60,11 +62,16 @@ const isSlotTooSoon = (selectedDate, time) => {
   if (!selectedDate || !time) return false;
   const now = new Date();
   const [h, m] = time.split(':').map(Number);
-  const appointmentDateTime = new Date(selectedDate + 'T00:00:00');
-  appointmentDateTime.setHours(h, m, 0, 0);
-  const diffMs = appointmentDateTime.getTime() - now.getTime();
-  return diffMs < 4 * 60 * 60 * 1000;
+  const appt = new Date(selectedDate + 'T00:00:00');
+  appt.setHours(h, m, 0, 0);
+  return appt.getTime() - now.getTime() < 4 * 60 * 60 * 1000;
 };
+
+const steps = [
+  { id: 1, label: 'Passeport', icon: FileText },
+  { id: 2, label: 'Vos infos', icon: User },
+  { id: 3, label: 'Rendez-vous', icon: Calendar },
+];
 
 export default function AppointmentForm() {
   const [step, setStep] = useState(1);
@@ -79,13 +86,13 @@ export default function AppointmentForm() {
     destinationCountry: '',
     appointmentDate: '',
     appointmentTime: '',
-    notificationMethod: 'email',
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [bookedSlots, setBookedSlots] = useState([]);
   const [availableSlots, setAvailableSlots] = useState([]);
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
   const updateField = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -107,15 +114,15 @@ export default function AppointmentForm() {
   const validateStep = () => {
     try {
       if (step === 1) appointmentSchema.pick({ hasPassport: true }).parse(formData);
-      else if (step === 2) appointmentSchema.pick({ firstName: true, lastName: true, email: true, whatsappNumber: true, cityOfResidence: true, notificationMethod: true }).parse(formData);
+      else if (step === 2) appointmentSchema.pick({ firstName: true, lastName: true, email: true, whatsappNumber: true, cityOfResidence: true }).parse(formData);
       else if (step === 3) appointmentSchema.pick({ visaType: true, destinationCountry: true, appointmentDate: true, appointmentTime: true }).parse(formData);
       setErrors({});
       return true;
     } catch (err) {
       if (err instanceof z.ZodError) {
-        const fieldErrors = {};
-        err.errors.forEach(e => { if (e.path.length) fieldErrors[e.path[0]] = e.message; });
-        setErrors(fieldErrors);
+        const f = {};
+        err.errors.forEach(e => { if (e.path.length) f[e.path[0]] = e.message; });
+        setErrors(f);
       }
       return false;
     }
@@ -128,8 +135,9 @@ export default function AppointmentForm() {
     if (!validateStep()) return;
     setIsSubmitting(true);
     try {
-      await api.post('/appointments', formData);
+      await api.post('/appointments', { ...formData, notificationMethod: 'email' });
       setSuccess(true);
+      setTimeout(() => setShowSuccessPopup(true), 600);
     } catch (err) {
       if (err.response?.status === 409) setErrors({ appointmentTime: 'Créneau déjà réservé' });
       else if (err.response?.status === 400) setErrors({ global: err.response.data.message });
@@ -138,130 +146,230 @@ export default function AppointmentForm() {
   };
 
   const handleNoPassport = () => {
-    const whatsappNumber = import.meta.env.VITE_WHATSAPP_NUMBER || '22952431717';
-    window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent("Bonjour, je souhaite prendre rendez-vous mais je n'ai pas de passeport.")}`, '_blank');
+    const num = import.meta.env.VITE_WHATSAPP_NUMBER || '22952431717';
+    window.open(`https://wa.me/${num}?text=${encodeURIComponent("Bonjour, je souhaite prendre rendez-vous mais je n'ai pas de passeport.")}`, '_blank');
   };
 
   const inputClass = (field) =>
-    `w-full border ${errors[field] ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-lg p-3 outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white`;
+    `w-full border ${errors[field] ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-xl py-3 pl-12 pr-4 outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition`;
+
+  const progress = ((step - 1) / (steps.length - 1)) * 100;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 md:p-8">
-      {success ? (
-        <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center py-12">
-          <Check className="w-16 h-16 text-green-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold mb-2 dark:text-white">Rendez-vous confirmé !</h2>
-          <p className="text-gray-600 dark:text-gray-300">Vous recevrez votre confirmation par {formData.notificationMethod === 'email' ? 'email' : 'WhatsApp'}.</p>
-        </motion.div>
-      ) : (
-        <>
-          <div className="flex justify-center mb-8">
-            {[1,2,3].map(s => (
-              <div key={s} className="flex items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${s <= step ? 'bg-primary text-white' : 'bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400'}`}>{s}</div>
-                {s < 3 && <div className={`w-10 h-1 ${s < step ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-600'}`} />}
+    <>
+      <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-6 md:p-10 border border-gray-100 dark:border-gray-700">
+        {success ? (
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="text-center py-12"
+          >
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', stiffness: 200 }}
+              className="inline-flex items-center justify-center w-20 h-20 bg-green-100 dark:bg-green-900 rounded-full mb-6"
+            >
+              <Check className="w-10 h-10 text-green-600 dark:text-green-400" />
+            </motion.div>
+            <h2 className="text-3xl font-bold mb-3 dark:text-white">Rendez-vous confirmé !</h2>
+            <p className="text-gray-600 dark:text-gray-300 max-w-md mx-auto">
+              Un email de confirmation contenant votre document PDF a été envoyé à <strong>{formData.email}</strong>.
+            </p>
+          </motion.div>
+        ) : (
+          <>
+            {/* Barre de progression */}
+            <div className="mb-10">
+              <div className="flex justify-between mb-3">
+                {steps.map((s) => {
+                  const Icon = s.icon;
+                  const isActive = step >= s.id;
+                  return (
+                    <div key={s.id} className="flex flex-col items-center flex-1">
+                      <motion.div
+                        className={`w-12 h-12 rounded-full flex items-center justify-center font-bold transition-all ${
+                          isActive ? 'bg-primary text-white shadow-lg' : 'bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400'
+                        }`}
+                        animate={{ scale: step === s.id ? 1.1 : 1 }}
+                      >
+                        {step > s.id ? <Check className="w-6 h-6" /> : <Icon className="w-6 h-6" />}
+                      </motion.div>
+                      <span className={`text-xs mt-2 font-medium ${isActive ? 'text-primary' : 'text-gray-500'}`}>
+                        {s.label}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
-            ))}
-          </div>
+              <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-gradient-to-r from-primary to-red-400 rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progress}%` }}
+                  transition={{ duration: 0.5 }}
+                />
+              </div>
+            </div>
 
-          <AnimatePresence mode="wait">
-            {step === 1 && (
-              <motion.div key="step1" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-                <h3 className="text-xl font-semibold mb-4 dark:text-white">Étape 1 : Passeport</h3>
-                <p className="mb-6 text-gray-700 dark:text-gray-200">Possédez-vous un passeport valide ?</p>
-                <div className="flex gap-4 justify-center">
-                  <button onClick={() => { updateField('hasPassport', true); nextStep(); }} className="bg-primary text-white px-8 py-3 rounded-lg hover:bg-red-700 transition font-semibold">
-                    Oui, j'ai un passeport
-                  </button>
-                  <button onClick={handleNoPassport} className="bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 px-8 py-3 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition font-semibold flex items-center gap-2">
-                    Non <AlertTriangle className="w-4 h-4" />
-                  </button>
-                </div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-4 text-center">
-                  Si vous n'avez pas de passeport, vous serez redirigé vers WhatsApp.
-                </p>
-                {errors.hasPassport && <p className="text-red-500 text-sm text-center mt-2">{errors.hasPassport}</p>}
-              </motion.div>
-            )}
+            <AnimatePresence mode="wait">
+              {/* Étape 1 */}
+              {step === 1 && (
+                <motion.div key="s1" initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 30 }}>
+                  <div className="text-center mb-8">
+                    <h3 className="text-2xl font-bold mb-2 dark:text-white">Avez-vous un passeport ?</h3>
+                    <p className="text-gray-600 dark:text-gray-400">Le passeport est requis pour toute demande de visa.</p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => { updateField('hasPassport', true); nextStep(); }}
+                      className="bg-primary text-white px-10 py-4 rounded-2xl hover:bg-red-700 transition font-semibold shadow-lg flex items-center justify-center gap-2"
+                    >
+                      <Check className="w-5 h-5" /> Oui, j'ai un passeport
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={handleNoPassport}
+                      className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-10 py-4 rounded-2xl hover:bg-gray-200 dark:hover:bg-gray-600 transition font-semibold flex items-center justify-center gap-2"
+                    >
+                      <AlertTriangle className="w-5 h-5" /> Non, pas encore
+                    </motion.button>
+                  </div>
+                  {errors.hasPassport && <p className="text-red-500 text-sm text-center mt-4">{errors.hasPassport}</p>}
+                </motion.div>
+              )}
 
-            {step === 2 && (
-              <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                <h3 className="text-xl font-semibold mb-4 dark:text-white">Étape 2 : Informations personnelles</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div><input placeholder="Prénom" className={inputClass('firstName')} value={formData.firstName} onChange={e => updateField('firstName', e.target.value)} />{errors.firstName && <p className="text-red-500 text-sm">{errors.firstName}</p>}</div>
-                  <div><input placeholder="Nom" className={inputClass('lastName')} value={formData.lastName} onChange={e => updateField('lastName', e.target.value)} />{errors.lastName && <p className="text-red-500 text-sm">{errors.lastName}</p>}</div>
-                  <div><input placeholder="Email" type="email" className={inputClass('email')} value={formData.email} onChange={e => updateField('email', e.target.value)} />{errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}</div>
-                  <div><input placeholder="WhatsApp (ex: 0156035888)" className={inputClass('whatsappNumber')} value={formData.whatsappNumber} onChange={e => updateField('whatsappNumber', e.target.value)} />{errors.whatsappNumber && <p className="text-red-500 text-sm">{errors.whatsappNumber}</p>}</div>
-                  <div><input placeholder="Ville de résidence" className={inputClass('cityOfResidence')} value={formData.cityOfResidence} onChange={e => updateField('cityOfResidence', e.target.value)} />{errors.cityOfResidence && <p className="text-red-500 text-sm">{errors.cityOfResidence}</p>}</div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1 dark:text-gray-200">Recevoir la confirmation par</label>
-                    <select className={inputClass('notificationMethod')} value={formData.notificationMethod} onChange={e => updateField('notificationMethod', e.target.value)}>
-                      <option value="email">Email</option>
-                      <option value="whatsapp">WhatsApp</option>
-                    </select>
+              {/* Étape 2 */}
+              {step === 2 && (
+                <motion.div key="s2" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }}>
+                  <div className="text-center mb-8">
+                    <h3 className="text-2xl font-bold mb-2 dark:text-white">Vos informations</h3>
+                    <p className="text-gray-600 dark:text-gray-400">Toutes vos données sont confidentielles.</p>
                   </div>
-                </div>
-              </motion.div>
-            )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="relative">
+                      <User className="absolute left-4 top-3.5 text-gray-400 w-5 h-5" />
+                      <input placeholder="Prénom" className={inputClass('firstName')} value={formData.firstName} onChange={e => updateField('firstName', e.target.value)} />
+                      {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>}
+                    </div>
+                    <div className="relative">
+                      <User className="absolute left-4 top-3.5 text-gray-400 w-5 h-5" />
+                      <input placeholder="Nom" className={inputClass('lastName')} value={formData.lastName} onChange={e => updateField('lastName', e.target.value)} />
+                      {errors.lastName && <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>}
+                    </div>
+                    <div className="relative">
+                      <Mail className="absolute left-4 top-3.5 text-gray-400 w-5 h-5" />
+                      <input placeholder="Adresse email" type="email" className={inputClass('email')} value={formData.email} onChange={e => updateField('email', e.target.value)} />
+                      {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+                    </div>
+                    <div className="relative">
+                      <Phone className="absolute left-4 top-3.5 text-gray-400 w-5 h-5" />
+                      <input placeholder="WhatsApp (ex: 0156035888)" className={inputClass('whatsappNumber')} value={formData.whatsappNumber} onChange={e => updateField('whatsappNumber', e.target.value)} />
+                      {errors.whatsappNumber && <p className="text-red-500 text-sm mt-1">{errors.whatsappNumber}</p>}
+                    </div>
+                    <div className="relative md:col-span-2">
+                      <MapPin className="absolute left-4 top-3.5 text-gray-400 w-5 h-5" />
+                      <input placeholder="Ville de résidence" className={inputClass('cityOfResidence')} value={formData.cityOfResidence} onChange={e => updateField('cityOfResidence', e.target.value)} />
+                      {errors.cityOfResidence && <p className="text-red-500 text-sm mt-1">{errors.cityOfResidence}</p>}
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-4 text-center">
+                    📧 Vous recevrez votre confirmation par email (avec document PDF).
+                  </p>
+                </motion.div>
+              )}
 
-            {step === 3 && (
-              <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                <h3 className="text-xl font-semibold mb-4 dark:text-white">Étape 3 : Détails du rendez-vous</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <select className={inputClass('visaType')} value={formData.visaType} onChange={e => updateField('visaType', e.target.value)}>
-                      <option value="">Type de visa</option>
-                      <option value="VISITEUR">Visiteur</option>
-                      <option value="TRAVAIL">Travail</option>
-                      <option value="ETUDE">Étude</option>
-                    </select>
-                    {errors.visaType && <p className="text-red-500 text-sm">{errors.visaType}</p>}
+              {/* Étape 3 */}
+              {step === 3 && (
+                <motion.div key="s3" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }}>
+                  <div className="text-center mb-8">
+                    <h3 className="text-2xl font-bold mb-2 dark:text-white">Détails du rendez-vous</h3>
+                    <p className="text-gray-600 dark:text-gray-400">Choisissez votre visa et votre créneau.</p>
                   </div>
-                  <div>
-                    <select className={inputClass('destinationCountry')} value={formData.destinationCountry} onChange={e => updateField('destinationCountry', e.target.value)} disabled={!formData.visaType}>
-                      <option value="">Pays de destination</option>
-                      {formData.visaType && countriesMatrix[formData.visaType].map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                    {errors.destinationCountry && <p className="text-red-500 text-sm">{errors.destinationCountry}</p>}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="relative">
+                      <Briefcase className="absolute left-4 top-3.5 text-gray-400 w-5 h-5" />
+                      <select className={inputClass('visaType') + ' appearance-none'} value={formData.visaType} onChange={e => updateField('visaType', e.target.value)}>
+                        <option value="">Type de visa</option>
+                        <option value="VISITEUR">✈️ Visiteur</option>
+                        <option value="TRAVAIL">💼 Travail</option>
+                        <option value="ETUDE">🎓 Étude</option>
+                      </select>
+                      {errors.visaType && <p className="text-red-500 text-sm mt-1">{errors.visaType}</p>}
+                    </div>
+                    <div className="relative">
+                      <Globe className="absolute left-4 top-3.5 text-gray-400 w-5 h-5" />
+                      <select className={inputClass('destinationCountry') + ' appearance-none'} value={formData.destinationCountry} onChange={e => updateField('destinationCountry', e.target.value)} disabled={!formData.visaType}>
+                        <option value="">Pays de destination</option>
+                        {formData.visaType && countriesMatrix[formData.visaType].map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                      {errors.destinationCountry && <p className="text-red-500 text-sm mt-1">{errors.destinationCountry}</p>}
+                    </div>
+                    <div className="relative">
+                      <Calendar className="absolute left-4 top-3.5 text-gray-400 w-5 h-5" />
+                      <input type="date" className={inputClass('appointmentDate')} value={formData.appointmentDate} onChange={e => updateField('appointmentDate', e.target.value)} min={new Date().toISOString().split('T')[0]} />
+                      {errors.appointmentDate && <p className="text-red-500 text-sm mt-1">{errors.appointmentDate}</p>}
+                    </div>
+                    <div className="relative">
+                      <Clock className="absolute left-4 top-3.5 text-gray-400 w-5 h-5" />
+                      <select className={inputClass('appointmentTime') + ' appearance-none'} value={formData.appointmentTime} onChange={e => updateField('appointmentTime', e.target.value)}>
+                        <option value="">Heure</option>
+                        {availableSlots.map(t => {
+                          const booked = bookedSlots.includes(t);
+                          const tooSoon = isSlotTooSoon(formData.appointmentDate, t);
+                          return (
+                            <option key={t} value={t} disabled={booked || tooSoon}>
+                              {t}{booked ? ' (réservé)' : ''}{!booked && tooSoon ? ' (trop proche)' : ''}
+                            </option>
+                          );
+                        })}
+                      </select>
+                      {errors.appointmentTime && <p className="text-red-500 text-sm mt-1">{errors.appointmentTime}</p>}
+                    </div>
                   </div>
-                  <div>
-                    <input type="date" className={inputClass('appointmentDate')} value={formData.appointmentDate} onChange={e => updateField('appointmentDate', e.target.value)} min={new Date().toISOString().split('T')[0]} />
-                    {errors.appointmentDate && <p className="text-red-500 text-sm">{errors.appointmentDate}</p>}
-                  </div>
-                  <div>
-                    <select className={inputClass('appointmentTime')} value={formData.appointmentTime} onChange={e => updateField('appointmentTime', e.target.value)}>
-                      <option value="">Heure</option>
-                      {availableSlots.map(t => {
-                        const booked = bookedSlots.includes(t);
-                        const tooSoon = isSlotTooSoon(formData.appointmentDate, t);
-                        return (
-                          <option key={t} value={t} disabled={booked || tooSoon}>
-                            {t}{booked ? ' (réservé)' : ''}{!booked && tooSoon ? ' (trop proche)' : ''}
-                          </option>
-                        );
-                      })}
-                    </select>
-                    {errors.appointmentTime && <p className="text-red-500 text-sm">{errors.appointmentTime}</p>}
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-          {errors.global && <p className="text-red-500 text-center mt-4">{errors.global}</p>}
+            {errors.global && <p className="text-red-500 text-center mt-4">{errors.global}</p>}
 
-          <div className="flex justify-between mt-8">
-            {step > 1 && <button onClick={prevStep} className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-red-400"><ChevronLeft className="w-4 h-4" /> Précédent</button>}
-            {step < 3 ? (
-              <button onClick={nextStep} className="ml-auto bg-primary text-white px-6 py-2 rounded-lg hover:bg-red-700 flex items-center gap-2">Suivant <ChevronRight className="w-4 h-4" /></button>
-            ) : (
-              <button onClick={handleSubmit} disabled={isSubmitting} className="ml-auto bg-secondary text-white px-6 py-2 rounded-lg hover:bg-yellow-600 flex items-center gap-2 disabled:opacity-50">
-                {isSubmitting ? <Loader2 className="animate-spin w-4 h-4" /> : <Check className="w-4 h-4" />} Confirmer
-              </button>
-            )}
-          </div>
-        </>
-      )}
-    </div>
+            <div className="flex justify-between mt-10">
+              {step > 1 && (
+                <button onClick={prevStep} className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-primary transition">
+                  <ChevronLeft className="w-4 h-4" /> Précédent
+                </button>
+              )}
+              {step < 3 ? (
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={nextStep}
+                  className="ml-auto bg-primary text-white px-8 py-3 rounded-2xl hover:bg-red-700 flex items-center gap-2 shadow-md"
+                >
+                  Suivant <ChevronRight className="w-4 h-4" />
+                </motion.button>
+              ) : (
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  className="ml-auto bg-gradient-to-r from-primary to-red-500 text-white px-8 py-3 rounded-2xl hover:shadow-xl flex items-center gap-2 disabled:opacity-50 shadow-md"
+                >
+                  {isSubmitting ? <Loader2 className="animate-spin w-4 h-4" /> : <Check className="w-4 h-4" />}
+                  Confirmer le rendez-vous
+                </motion.button>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Popup de succès avec suggestions */}
+      <SuccessPopup isOpen={showSuccessPopup} onClose={() => setShowSuccessPopup(false)} />
+    </>
   );
 }

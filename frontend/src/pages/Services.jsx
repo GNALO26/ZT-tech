@@ -29,6 +29,14 @@ const services = [
     link: '/rdv',
     linkText: 'Prendre rendez-vous',
   },
+  {
+  icon: Car,
+  title: 'Location de voiture',
+  description: 'Louez un véhicule pour vos déplacements professionnels ou touristiques, à Cotonou et dans tout le Bénin.',
+  image: '/images/services/location-voiture.jpg',
+  link: '/contact',
+  linkText: 'Demander un devis',
+},
 ];
 
 const processSteps = [

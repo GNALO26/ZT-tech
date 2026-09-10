@@ -4,9 +4,8 @@ import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import api from '../services/api';
 import Reactions from '../components/blog/Reactions';
-import { Facebook, Instagram, Link as LinkIcon, Share2 } from 'lucide-react';
+import { Facebook, Instagram, Link as LinkIcon } from 'lucide-react';
 
-// URL de base pour les images uploadées sur Render
 const BACKEND_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://zt-tech.onrender.com';
 
 export default function BlogArticle() {
@@ -42,7 +41,6 @@ export default function BlogArticle() {
     },
     {
       name: 'WhatsApp',
-      icon: null, // on utilisera un SVG inline
       href: `https://wa.me/?text=${shareText}`,
       color: 'hover:bg-green-600',
       svg: (
@@ -53,7 +51,6 @@ export default function BlogArticle() {
     },
     {
       name: 'TikTok',
-      icon: null,
       href: `https://www.tiktok.com/share?url=${encodeURIComponent(articleUrl)}`,
       color: 'hover:bg-black',
       svg: (
@@ -86,20 +83,22 @@ export default function BlogArticle() {
         <meta property="og:url" content={articleUrl} />
       </Helmet>
 
-      <img
-        src={imageUrl}
-        alt={article.title}
-        className="w-full h-64 md:h-96 object-cover rounded-xl mb-8"
-        loading="lazy"
-      />
+      {/* Image affichée en entier, sans recadrage */}
+      <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-xl mb-8 flex items-center justify-center overflow-hidden">
+        <img
+          src={imageUrl}
+          alt={article.title}
+          className="max-w-full max-h-[700px] w-auto h-auto object-contain"
+          loading="lazy"
+        />
+      </div>
 
       <h1 className="text-3xl md:text-4xl font-bold mb-4 dark:text-white">{article.title}</h1>
 
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
         <span className="text-gray-500 dark:text-gray-400">
           {new Date(article.createdAt).toLocaleDateString()}
         </span>
-        {/* Boutons de partage */}
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-500 dark:text-gray-400">Partager :</span>
           {shareLinks.map((link, i) => (

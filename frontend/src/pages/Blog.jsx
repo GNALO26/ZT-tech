@@ -6,7 +6,6 @@ import { Calendar, Search, ArrowRight } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import Reactions from '../components/blog/Reactions';
 
-// URL de base pour les images uploadées sur Render
 const BACKEND_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://zt-tech.onrender.com';
 
 export default function Blog() {
@@ -86,12 +85,15 @@ export default function Blog() {
                 className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden flex flex-col"
               >
                 <Link to={`/blog/${article.slug}`}>
-                  <img
-                    src={imageUrl}
-                    alt={article.title}
-                    className="w-full h-56 object-cover"
-                    loading="lazy"
-                  />
+                  {/* Conteneur d'image avec ratio fixe et image entière visible */}
+                  <div className="w-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center" style={{ height: '260px' }}>
+                    <img
+                      src={imageUrl}
+                      alt={article.title}
+                      className="w-full h-full object-contain"
+                      loading="lazy"
+                    />
+                  </div>
                 </Link>
                 <div className="p-4 flex flex-col flex-1">
                   <Link to={`/blog/${article.slug}`} className="font-semibold text-lg mb-2 dark:text-white hover:text-primary">
