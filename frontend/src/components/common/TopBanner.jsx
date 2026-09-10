@@ -3,9 +3,6 @@ import { Megaphone, X } from 'lucide-react';
 import { useState } from 'react';
 
 const messages = [
-  '✈️ Visa Canada – 20 places disponibles',
-  '🚗 Location de voiture disponible à partir de 25 000 FCFA/jour',
-  '🎓 Formation informatique – Inscriptions ouvertes',
   '🌟 Espace VIP : accompagnement prioritaire',
 ];
 
