@@ -4,12 +4,10 @@ import Footer from '../components/common/Footer';
 import Chatbot from '../components/common/Chatbot';
 import BackToTop from '../components/common/BackToTop';
 import NewsletterPopup from '../components/common/NewsletterPopup';
-// import TopBanner from '../components/common/TopBanner';
 
 export default function MainLayout() {
   return (
     <div className="flex flex-col min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
-      <TopBanner />
       <Header />
       <main className="flex-grow pt-16">
         <Outlet />
