@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { FileText, Globe, GraduationCap, Clock, ThumbsUp, ShieldCheck, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { FileText, Globe, GraduationCap, Clock, ThumbsUp, ShieldCheck, ChevronRight, CheckCircle2, Car } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import ServiceCard from '../components/services/ServiceCard';
@@ -30,13 +30,13 @@ const services = [
     linkText: 'Prendre rendez-vous',
   },
   {
-  icon: Car,
-  title: 'Location de voiture',
-  description: 'Louez un véhicule pour vos déplacements professionnels ou touristiques, à Cotonou et dans tout le Bénin.',
-  image: '/images/services/location-voiture.jpg',
-  link: '/contact',
-  linkText: 'Demander un devis',
-},
+    icon: Car,
+    title: 'Location de voiture',
+    description: 'Louez un véhicule à Cotonou et partout au Bénin. Berlines, SUV et utilitaires disponibles.',
+    image: '/images/services/location-voiture.jpg',
+    link: '/location-voiture',
+    linkText: 'Découvrir la flotte',
+  },
 ];
 
 const processSteps = [
@@ -50,7 +50,7 @@ export default function Services() {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-screen">
       <Helmet>
         <title>Nos services | ZT-Voyage</title>
-        <meta name="description" content="Découvrez nos services : visas, documents administratifs, études à l'étranger, avec un accompagnement sur mesure." />
+        <meta name="description" content="Découvrez nos services : visas, documents administratifs, études à l'étranger, location de voiture, avec un accompagnement sur mesure." />
       </Helmet>
 
       {/* Hero */}
@@ -69,7 +69,7 @@ export default function Services() {
       {/* Cartes de services */}
       <section className="py-16 bg-light dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {services.map((service, i) => (
               <ServiceCard key={i} {...service} />
             ))}
